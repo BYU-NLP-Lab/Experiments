@@ -1,0 +1,9 @@
+These folders contain driver scripts and plotting scripts.
+In general, these scripts assume that before running them you 
+have done: 
+`mvn clean dependencies:copy-dependencies package`
+That will transitively download all of the libraries that your 
+pom file depends on into the target/dependency/ folder.
+
+Each archival paper folder should contain an explanation of what it is doing and 
+which paper(s) it contributed to. 

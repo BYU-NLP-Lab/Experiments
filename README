@@ -1,0 +1,26 @@
+This repo is a place for developing and archiving 
+the code necessary to use archived jars 
+to reproduce previous results. The intent is that anybody in 
+the future at any time can clone this repo, find the 
+folder corresponding to the paper they are interested in, 
+and follow the directions there to exactly reproduce the 
+results reported in that paper. 
+
+folder structure:
+  [username]/: a folder for ongoing development by username 
+    (a good place for work in progress, failed paper submissions, etc.)
+  [papername]/: an archival set of experiments/scripts corresponding
+    to papers that have been published. 
+
+Good to commit:
+* READMEs explaining a manual pipeline of scripts to run
+* experiment driver scripts
+* result collections scripts
+* plotting scripts
+* parsimonious csv files summarizing important published results
+
+Bad to commit:
+* large files
+* dependencies on jars or projects that are not archived 
+  in our maven repo. 
+* raw results or log files.

@@ -1,0 +1,12 @@
+results/
+results
+out
+out/
+orig-results/
+bogus/
+mismatched-results/
+archive/
+csv/
+tmp
+target/
+.R*

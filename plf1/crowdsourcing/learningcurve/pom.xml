@@ -1,0 +1,54 @@
+<!-- Exists simply to allow maven to download dependencies transitively -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+  <!-- these don't really matter because we won't be creating shared artifacts with this project -->
+	<artifactId>experiment</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<groupId>edu.byu.nlp</groupId>
+
+	<dependencies>
+		<dependency>
+			<groupId>edu.byu.nlp</groupId>
+			<artifactId>statnlp-activelearning</artifactId>
+			<!-- get this dependency version right for paper archives! It should NOT be a snapshot! -->
+			<version>0.0.1-SNAPSHOT</version> 
+		</dependency>
+	</dependencies>
+
+  <!-- In-house repos that should be searched for artifact download -->
+  <repositories>
+    <!-- releases -->
+    <repository>
+      <id>byunlp-releases</id>
+      <name>BYU NLP Releases</name>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>fail</checksumPolicy>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <url>http://apps.nlp.cs.byu.edu/nexus/content/repositories/byunlp-releases</url>
+      <layout>default</layout>
+    </repository>
+    <!-- snapshots (disable for paper archives) -->
+    <repository>
+      <id>byunlp-snapshots</id>
+      <name>BYU NLP Snapshots</name>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>fail</checksumPolicy>
+      </snapshots>
+      <url>http://apps.nlp.cs.byu.edu/nexus/content/repositories/byunlp-snapshots</url>
+      <layout>default</layout>
+    </repository>
+  </repositories>
+
+</project>

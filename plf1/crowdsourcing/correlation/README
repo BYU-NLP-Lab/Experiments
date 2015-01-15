@@ -1,0 +1,9 @@
+scripts to generate plots charting the correlation between model parameter
+posterior probability and model accuracy
+
+plot.R
+    Plots the resulting concatenate csv
+mrs-submit.py
+    Runs jobs on the potatos using mrs. Usage:
+    ./clusterrun.py -h potatos -n multiann -o out --interpreter=/usr/bin/python mrs_submit.py --stage=1
+
