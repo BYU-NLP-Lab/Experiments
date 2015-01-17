@@ -3,6 +3,7 @@ import jobfarm
 import argparse
 import multiann
 import os
+from subprocess import call
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -12,11 +13,16 @@ if __name__ == '__main__':
     parser.add_argument("--pollint","-p",default=1,help="How often should hosts be polled for job completion?")
     parser.add_argument("--test","-t",default=False,action='store_true',help="do a dummy run (without contacting remotes or running jobs")
     # crowdsourcing args
+    parser.add_argument("--copy-dependencies","-c",action='store_true',default=False,help="Reload maven dependencies before running?")
     parser.add_argument("--mem","-m",default="4g",help="How much memory to allocate each job jre?")
     parser.add_argument("--stage","-s",default=2,help="Stages are 1 (run chains) or 2 (initialize with chains and run optimization) or 3 (re-run diagonalization on chains)")
     parser.add_argument("--first-experiment","-f",default=101,help="Start running experiments from this number on")
     parser.add_argument("--results-dir","-r",required=True,help="Where should job results be stored?")
     args = parser.parse_args()
+
+    # download dependencies
+    if args.copy_dependencies:
+        call(["mvn","clean","dependency:copy-dependencies"])
 
     # setup results directories
     outdir = os.getcwd()

@@ -100,16 +100,16 @@ def jobs(stage, first_experiment, chain_results_dir, optimized_results_dir, mem)
 
         # dataset-related params
         ('--basedir',(
-            #'../../../../data/naivebayes-20',
-            #'tgz:../../../../data/multiresp-2.tgz',
-            'zip:../../../../data/newsgroups.zip',
-            #'../../../../data/cfgroups1000',
-            #'../../../../data/dredze/derived',
-            #'zip:../../../../data/enron.zip',
-            #'zip:../../../../data/r8.zip',
-            #'zip:../../../../data/webkb.zip',
-            #'zip:../../../../data/cade12.zip',
-            #'zip:../../../../data/r52.zip',
+            #'data/naivebayes-20',
+            #'tgz:data/multiresp-2.tgz',
+            'zip:data/newsgroups.zip',
+            #'data/cfgroups1000',
+            #'data/dredze/derived',
+            #'zip:data/enron.zip',
+            #'zip:data/r8.zip',
+            #'zip:data/webkb.zip',
+            #'zip:data/cade12.zip',
+            #'zip:data/r52.zip',
             )),
         ('--dataset-type', broom.Mapper('--basedir',{
             'naivebayes-20':'NB20',
@@ -222,7 +222,7 @@ def jobs(stage, first_experiment, chain_results_dir, optimized_results_dir, mem)
         #('--labeling-strategy',['ubaseline','varmomresp','varrayk']), 
         #('--labeling-strategy',['ubaseline','varitemresp','varmomresp','varrayk']), 
         #('--labeling-strategy',['ubaseline','varitemresp','varmomresp','varrayk','rayktrunc']), 
-        ('--labeling-strategy',['ubaseline','itemresp','momresp','multiresp','varitemresp','varmomresp','varmultiresp','rayktrunc']), 
+        ('--labeling-strategy',['ubaseline','itemresp','momresp','multiresp','varitemresp','varmomresp','varmultiresp','rayktrunc','varrayk','cslda']), 
         ('--training',training),
         ('--diagonalization-method',diagonalization_method),
         ('--gold-instances-for-diagonalization',-1),
@@ -275,7 +275,7 @@ if __name__ == "__main__":
     headn = 3
     firstexperiment = 101
 
-    outdir = 'results/0-nov-2014-nips'
+    outdir = '/tmp/bogus'
     #outdir = '/tmp/multiannresults'
     outchains = "%s/chains" % outdir
     outoptimized = "%s/optimized" % outdir

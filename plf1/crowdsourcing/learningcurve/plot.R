@@ -153,16 +153,16 @@ plotAlgorithms <- function(dat, yvarname, title, ymin=0, ymax=1, ylabel="Accurac
     gsub('\\.0','',format(x))
   }
 
-  if (is.null(dat$num_annotated_instances)){
-    dat$num_annotated_instances <- round(dat$num_annotations / d$k)
+  if (is.null(dat$num_instances_annotated)){
+    dat$num_instances_annotated <- round(dat$num_annotations / d$k)
   }
 
-  dfc <- summarySE(dat, measurevar=yvarname, groupvars=c("algorithm","num_annotated_instances","d","accuracy_level","corpus","diagonalization_method"))
+  dfc <- summarySE(dat, measurevar=yvarname, groupvars=c("algorithm","num_instances_annotated","d","accuracy_level","corpus","diagonalization_method"))
   if (!is.null(divisor)){
-    dfc$num_annotated_instances <- dfc$num_annotated_instances/divisor
+    dfc$num_instances_annotated <- dfc$num_instances_annotated/divisor
   }
 
-  plt <- ggplot(dat=dfc, aes_string(x="num_annotated_instances", y=yvarname, color="algorithm", group="algorithm")) + 
+  plt <- ggplot(dat=dfc, aes_string(x="num_instances_annotated", y=yvarname, color="algorithm", group="algorithm")) + 
     ggtitle(title) +
     geom_errorbar(aes_string(ymin=sprintf("%s-sd",yvarname), ymax=sprintf("%s+sd",yvarname))) +
     geom_line(size=0.8) +
@@ -171,9 +171,9 @@ plotAlgorithms <- function(dat, yvarname, title, ymin=0, ymax=1, ylabel="Accurac
     ylab(ylabel) + 
     xlab(sprintf(xlabel,format(divisor,big.mark=',',big.interval=3))) + 
     scale_x_continuous(labels=xformatter) +
-    theme(plot.title = element_text(lineheight=1.8,face='bold')) +
-    scale_colour_manual(values=c('Majority'="#619Cff", 'MomResp'="#F8766D",'MomResp+MF'="#F8766D", 'LogResp'="#00BA38",'LogResp+MF'="#00BA38", 'MomResp+Gibbs'="#777777",'LogResp+EM'="#777777")) +
-    scale_shape_manual(values=c('Majority'=1, 'MomResp'=17,'MomResp+MF'=17, 'LogResp'=18,'LogResp+MF'=18,'LogResp+EM'=3, 'MomResp+Gibbs'=3)) 
+    theme(plot.title = element_text(lineheight=1.8,face='bold')) 
+    #scale_colour_manual(values=c('Majority'="#619Cff", 'MomResp'="#F8766D",'MomResp+MF'="#F8766D", 'LogResp'="#00BA38",'LogResp+MF'="#00BA38", 'MomResp+Gibbs'="#777777",'LogResp+EM'="#777777")) +
+    #scale_shape_manual(values=c('Majority'=1, 'MomResp'=17,'MomResp+MF'=17, 'LogResp'=18,'LogResp+MF'=18,'LogResp+EM'=3, 'MomResp+Gibbs'=3)) 
     #scale_colour_manual(values=c('baseline'="#555555", 'itemresp'="#009E73", 'momresp'="#56B4E9", 'multiresp'="#D5005E",'multiresp_m'="#5ED500", 'itemresp_s'="#0072B2", 'momresp_s'="#E69F00", 'multiresp_s'="#CC79A7", 'multiresp_sm'="#79CCA7")) +
     #scale_shape_manual(values=c('baseline'=1, 'itemresp'=17, 'momresp'=18, 'multiresp'=3, 'multiresp_m'=4, 'itemresp_s'=5, 'momresp_s'=6, 'multiresp_s'=0, 'multiresp_sm'=0)) 
 
@@ -213,10 +213,11 @@ stop()
 
 #install.packages("ggplot2")
 require(ggplot2)
-setwd('/aml/home/plf1/altgit/statnlp/scripts/learningcurve/csv')
-data = read.csv("2014-08-08.csv")
-data = read.csv("2014-10-07-partial-nips.csv")
-data = read.csv("2014-10-08-partial-nips.csv")
+setwd('/aml/home/plf1/git/Experiments/plf1/crowdsourcing/learningcurve/csv')
+# data = read.csv("2014-08-08.csv")
+# data = read.csv("2014-10-07-partial-nips.csv")
+# data = read.csv("2014-10-08-partial-nips.csv")
+data = read.csv("2015-01-16-after-refactoring.csv")
 
 # stop execution after reading data.proceed manually
 stop()

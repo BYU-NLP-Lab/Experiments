@@ -9,4 +9,5 @@ archive/
 csv/
 tmp
 target/
+*.log
 .R*
