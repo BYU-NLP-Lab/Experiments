@@ -12,8 +12,8 @@ import broom # custom library from ~plf1/git/utils/broom
 def parabolic_points(lower,upper,num):
     points = range(int(math.sqrt(lower)), int(round(math.sqrt(upper))), int(round(math.sqrt(upper)/num)))
     return [p*p for p in points] 
-def shortenval(val):
-    return str(val)[-10:]
+def shortenval(val,maxlength=10):
+    return str(val)[-maxlength:]
 
 def jobname(keys,state,delim=':',equals=''):
     #print state['--eval-point']
@@ -21,7 +21,7 @@ def jobname(keys,state,delim=':',equals=''):
     keys = [key for key in keys if 'file' not in key] # exclude undesirable opts
     parts = []
     for key in keys:
-        parts.append("%s%s%s" % (broom.shorten_option(key,maxlength=5),equals,shortenval(state[key])))
+        parts.append("%s%s%s" % (broom.shorten_option(key,maxlength=4),equals,shortenval(state[key],maxlength=9)))
     name = delim.join(parts)
     name = name.replace('-','') # remove hyphens
     name = name.replace('.','') # remove path dots
@@ -151,8 +151,56 @@ def jobs(stage, first_experiment, chain_results_dir, optimized_results_dir, mem)
         ('--feature-count-cutoff',5),
         ('--top-n-features-per-document',-1),
 
+        # annotations
+        ('--annotation-strategy', broom.Mapper('--basedir',{
+            'dredze':'real',
+            'cfgroups1000':'real',
+            }, default='grr', matchsubstrings=True).generator),
+        ('--accuracy-level', broom.Mapper('--annotation-strategy',{
+            'real':None,
+            #'grr':("LOW"),
+            #'grr':("LOW","CONFLICT"),
+            'grr':("HIGH","MED","LOW","CONFLICT"),
+            }).generator),
+        ('-k', broom.Mapper('--annotation-strategy',{
+            'real':None,
+            'grr':(3),
+            #'grr':(1,2,3,5),
+            #'grr':(1,2,3,5,10),
+            }).generator),
+
+        # observed trusted labels
+        ('--num-observed-labels',0),
+        #('--num-observed-labels-per-annotator',2),
+        #('--num-observed-labels-per-class',broom.Mapper('--basedir',{
+        #    'cfgroups1000':None
+        #}, default=10, matchsubstrings=True).generator),
+
+        # inference
+        #('--labeling-strategy',['momresp']), 
+        #('--labeling-strategy',['rayktrunc','varrayk']), 
+        #('--labeling-strategy',['rayktrunc','varrayk']), 
+        #('--labeling-strategy',['varmomresp','varrayk']), 
+        #('--labeling-strategy',['ubaseline','varmomresp','varrayk']), 
+        #('--labeling-strategy',['ubaseline','varitemresp','varmomresp','varrayk']), 
+        #('--labeling-strategy',['ubaseline','varitemresp','varmomresp','varrayk','rayktrunc']), 
+        #('--labeling-strategy',['ubaseline','itemresp','momresp','multiresp','varitemresp','varmomresp','varmultiresp','rayktrunc','varrayk','cslda']), 
+        ('--labeling-strategy',['ubaseline','itemresp','varitemresp']), 
+        ('--training',training),
+        ('--diagonalization-method',diagonalization_method),
+        ('--gold-instances-for-diagonalization',-1),
+        ('--lambda',1),
+        ('--validation-percent', 10), 
+        ('--hyperparam-training', ['maximize-all-BOBYQA','maximize-all-GRID','maximize-all-NONE']), 
+        #('--truncate-unannotated-data', broom.Mapper('--labeling-strategy',{
+        #    'multiresp':('',None), # run multiresp with and without this option
+        #    'momresp':('',None), # run multiresp with and without this option
+        #    }, default=None).generator),
+
         # weak priors
-        ('--b-theta','1'),
+        ('--b-theta',broom.Mapper('--labeling-strategy',{
+            'cslda': 0.1,
+        }, default=1.0).generator),
         ('--b-phi','0.1'),
         ('--b-mu','0.1'),
         ('--c-mu','1'),
@@ -188,53 +236,6 @@ def jobs(stage, first_experiment, chain_results_dir, optimized_results_dir, mem)
         #    'webkb':(1.+1.)/(4.+1.),
         #    #'dredze':0.65, # christophe prior
         #    }, default=-1, matchsubstrings=True).generator),
-
-        # annotations
-        ('--annotation-strategy', broom.Mapper('--basedir',{
-            'dredze':'real',
-            'cfgroups1000':'real',
-            }, default='grr', matchsubstrings=True).generator),
-        ('--accuracy-level', broom.Mapper('--annotation-strategy',{
-            'real':None,
-            #'grr':("CROWD"),
-            #'grr':("CROWD","CONFLICT"),
-            'grr':("NOISY","VERY_NOISY","CROWD","CONFLICT"),
-            }).generator),
-        ('-k', broom.Mapper('--annotation-strategy',{
-            'real':None,
-            'grr':(3),
-            #'grr':(1,2,3,5),
-            #'grr':(1,2,3,5,10),
-            }).generator),
-
-        # observed trusted labels
-        ('--num-observed-labels',0),
-        #('--num-observed-labels-per-annotator',2),
-        #('--num-observed-labels-per-class',broom.Mapper('--basedir',{
-        #    'cfgroups1000':None
-        #}, default=10, matchsubstrings=True).generator),
-
-        # inference
-        #('--labeling-strategy',['momresp']), 
-        #('--labeling-strategy',['rayktrunc','varrayk']), 
-        #('--labeling-strategy',['rayktrunc','varrayk']), 
-        #('--labeling-strategy',['varmomresp','varrayk']), 
-        #('--labeling-strategy',['ubaseline','varmomresp','varrayk']), 
-        #('--labeling-strategy',['ubaseline','varitemresp','varmomresp','varrayk']), 
-        #('--labeling-strategy',['ubaseline','varitemresp','varmomresp','varrayk','rayktrunc']), 
-        ('--labeling-strategy',['ubaseline','itemresp','momresp','multiresp','varitemresp','varmomresp','varmultiresp','rayktrunc','varrayk','cslda']), 
-        ('--training',training),
-        ('--diagonalization-method',diagonalization_method),
-        ('--gold-instances-for-diagonalization',-1),
-        ('--lambda',1),
-        #('--lambda-validation-set', broom.Mapper('--labeling-strategy',{
-        #    'multiresp': 100,
-        #    }, default=-1).generator),
-        #('--lambda-validation-folds',1),
-        #('--truncate-unannotated-data', broom.Mapper('--labeling-strategy',{
-        #    'multiresp':('',None), # run multiresp with and without this option
-        #    'momresp':('',None), # run multiresp with and without this option
-        #    }, default=None).generator),
 
         # random runs and chains
         ('--data-seed', broom.Mapper('--annotation-strategy',{
