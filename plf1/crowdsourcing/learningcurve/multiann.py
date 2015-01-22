@@ -76,8 +76,7 @@ def jobs(stage, first_experiment, chain_results_dir, optimized_results_dir, mem)
         diagonalization_method = ("GOLD")
         #diagonalization_method = ("NONE","GOLD","AVG_GAMMA")
         chains = 1
-        #training = "maximize;maximizey"
-        training = "maximize"
+        training = "maximize-all"
         results_dir = optimized_results_dir
         inputfiles = None # TODO: if necessary, init w chains
     elif stage==3:
