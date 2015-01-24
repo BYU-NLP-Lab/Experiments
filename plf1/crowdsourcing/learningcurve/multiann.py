@@ -68,8 +68,8 @@ def jobs(stage, first_experiment, chain_results_dir, optimized_results_dir, mem)
         diagonalization_method = ("NONE")
         chains = 5
         # 1000,500,200,100,50,20,10,5,2,1,1,1
-        training = "sample-250-1:sample-250-1" 
-        #training = "sample-250-1000:sample-250-500:sample-250-200:sample-250-100:sample-250-50:sample-250-20:sample-250-10:sample-250-5:sample-250-2:sample-250-1:sample-250-1:sample-250-1" 
+        training = "sample-all-250-1:sample-all-250-1" 
+        #training = "sample-all-250-1000:sample-all-250-500:sample-all-250-200:sample-all-250-100:sample-all-250-50:sample-all-250-20:sample-all-250-10:sample-all-250-5:sample-all-250-2:sample-all-250-1:sample-all-250-1:sample-all-250-1" 
         results_dir = chain_results_dir
         inputfiles = None
     elif stage==2:
@@ -184,13 +184,18 @@ def jobs(stage, first_experiment, chain_results_dir, optimized_results_dir, mem)
         #('--labeling-strategy',['ubaseline','varitemresp','varmomresp','varrayk']), 
         #('--labeling-strategy',['ubaseline','varitemresp','varmomresp','varrayk','rayktrunc']), 
         #('--labeling-strategy',['ubaseline','itemresp','momresp','multiresp','varitemresp','varmomresp','varmultiresp','rayktrunc','varrayk','cslda']), 
-        ('--labeling-strategy',['ubaseline','itemresp','varitemresp']), 
+        ('--labeling-strategy','itemresp'), 
+        #('--labeling-strategy',['ubaseline','itemresp','varitemresp']), 
         ('--training',training),
         ('--diagonalization-method',diagonalization_method),
         ('--gold-instances-for-diagonalization',-1),
-        ('--lambda',1),
+        #('--lambda',1),
+        ('--training-percent', 85), 
         ('--validation-percent', 10), 
-        ('--hyperparam-training', ['maximize-all-BOBYQA','maximize-all-GRID','maximize-all-NONE']), 
+        ('--hyperparam-training', broom.Mapper('--labeling-strategy',{
+            'ubaseline': 'maximize-all-NONE',
+            'baseline': 'maximize-all-NONE',
+        },default=['maximize-all-BOBYQA','maximize-all-GRID','maximize-all-NONE']).generator), 
         #('--truncate-unannotated-data', broom.Mapper('--labeling-strategy',{
         #    'multiresp':('',None), # run multiresp with and without this option
         #    'momresp':('',None), # run multiresp with and without this option
