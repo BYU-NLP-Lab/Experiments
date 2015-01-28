@@ -195,6 +195,7 @@ def jobs(stage, first_experiment, chain_results_dir, optimized_results_dir, mem)
         ('--hyperparam-training', broom.Mapper('--labeling-strategy',{
             'ubaseline': 'maximize-all-NONE',
             'baseline': 'maximize-all-NONE',
+            'cslda': ['maximize-btheta,bphi-GRID-50-cslda-maximize-all-10:maximize-btheta,bphi-GRID-50-itemresp-maximize-all'],
         },default=['maximize-all-BOBYQA','maximize-all-GRID','maximize-all-NONE']).generator), 
         #('--truncate-unannotated-data', broom.Mapper('--labeling-strategy',{
         #    'multiresp':('',None), # run multiresp with and without this option
