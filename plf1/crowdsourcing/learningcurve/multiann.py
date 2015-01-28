@@ -51,7 +51,7 @@ def serializedinputfiles(keys,state):
 ######################################################
 #                   MAIN
 #####################################################
-def jobs(stage, first_experiment, chain_results_dir, optimized_results_dir, mem):
+def jobs(first_experiment, results_dir, mem):
 
     # java runtime
     main = 'edu.byu.nlp.al.app.CrowdsourcingLearningCurve'
@@ -61,32 +61,8 @@ def jobs(stage, first_experiment, chain_results_dir, optimized_results_dir, mem)
 
     num_evalpoints = 10
     repeats = 5
-
-    # set stage-specific parameters
-    stage = int(stage)
-    if stage==1:
-        diagonalization_method = ("NONE")
-        chains = 5
-        # 1000,500,200,100,50,20,10,5,2,1,1,1
-        training = "sample-all-250-1:sample-all-250-1" 
-        #training = "sample-all-250-1000:sample-all-250-500:sample-all-250-200:sample-all-250-100:sample-all-250-50:sample-all-250-20:sample-all-250-10:sample-all-250-5:sample-all-250-2:sample-all-250-1:sample-all-250-1:sample-all-250-1" 
-        results_dir = chain_results_dir
-        inputfiles = None
-    elif stage==2:
-        diagonalization_method = ("GOLD")
-        #diagonalization_method = ("NONE","GOLD","AVG_GAMMA")
-        chains = 1
-        training = "maximize-all"
-        results_dir = optimized_results_dir
-        inputfiles = None # TODO: if necessary, init w chains
-    elif stage==3:
-        diagonalization_method = ("GOLD","AVG_GAMMA")
-        chains = 5
-        training = "none"
-        results_dir = chain_results_dir
-        inputfiles = None # TODO: init with chain
-    else:
-        raise(Exception("unknown stage: %s" % stage))
+    chains = 1 # TODO: consider more for sampling runs
+    inputfiles = None # TODO: if necessary, init w chains
 
     # sweep parameters
     cwd = os.getcwd()
@@ -186,8 +162,10 @@ def jobs(stage, first_experiment, chain_results_dir, optimized_results_dir, mem)
         #('--labeling-strategy',['ubaseline','itemresp','momresp','multiresp','varitemresp','varmomresp','varmultiresp','rayktrunc','varrayk','cslda']), 
         ('--labeling-strategy','itemresp'), 
         #('--labeling-strategy',['ubaseline','itemresp','varitemresp']), 
-        ('--training',training),
-        ('--diagonalization-method',diagonalization_method),
+        ('--training',broom.Mapper('--labeling-strategy',{
+            'cslda':'sample-z-250:sample-y-10:maximize-all',
+        },default='maximize-all').generator),
+        ('--diagonalization-method',"GOLD"),
         ('--gold-instances-for-diagonalization',-1),
         #('--lambda',1),
         ('--training-percent', 85), 
@@ -195,8 +173,8 @@ def jobs(stage, first_experiment, chain_results_dir, optimized_results_dir, mem)
         ('--hyperparam-training', broom.Mapper('--labeling-strategy',{
             'ubaseline': 'maximize-all-NONE',
             'baseline': 'maximize-all-NONE',
-            'cslda': ['maximize-btheta,bphi-GRID-50-cslda-maximize-all-10:maximize-btheta,bphi-GRID-50-itemresp-maximize-all'],
-        },default=['maximize-all-BOBYQA','maximize-all-GRID','maximize-all-NONE']).generator), 
+            'cslda': ['maximize-btheta,bphi-GRID-1-cslda-joint-maximize-z:maximize-bgamma,cgamma-GRID-1-itemresp-acc-maximize-all','maximize-none-NONE'],
+        },default='maximize-all-GRID').generator), 
         #('--truncate-unannotated-data', broom.Mapper('--labeling-strategy',{
         #    'multiresp':('',None), # run multiresp with and without this option
         #    'momresp':('',None), # run multiresp with and without this option
@@ -283,44 +261,18 @@ if __name__ == "__main__":
 
     outdir = '/tmp/bogus'
     #outdir = '/tmp/multiannresults'
-    outchains = "%s/chains" % outdir
-    outoptimized = "%s/optimized" % outdir
     try:
         os.makedirs(outdir)
-        os.makedirs(outchains)
-        os.makedirs(outoptimized)
     except:
         pass
-    print '============================================'
-    print '= Stage 1: first %d jobs' % headn
-    print '============================================'
-    total = -1
-    for i,job in enumerate(jobs(1,firstexperiment,outchains,outoptimized,"1000m")):
-        if i<=headn:
-            print
-            print job
-        total = i
-    print '\ntotal stage 1 jobs=%d' % total
-
     print
     print '============================================'
-    print '= Stage 2: first %d jobs' % headn
+    print '= first %d jobs' % headn
     print '============================================'
-    for i,job in enumerate(jobs(2,firstexperiment,outchains,outoptimized,"1000m")):
+    for i,job in enumerate(jobs(firstexperiment,outdir,"1000m")):
         if i<=headn:
             print 
             print job
         total = i
-    print '\ntotal stage 2 jobs=%d' % total
-
-    #print
-    #print '============================================'
-    #print '= Stage 3: first %d jobs' % headn
-    #print '============================================'
-    #for i,job in enumerate(jobs(3,firstexperiment,outchains,outoptimized,"1000m")):
-    #    if i<=headn:
-    #        print
-    #        print job
-    #    total = i
-    #print '\ntotal stage 3 jobs=%d' % total
+    print '\ntotal jobs=%d' % total
 

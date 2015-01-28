@@ -39,27 +39,10 @@ def do_batch(batch):
 #####################################################
 if __name__ == "__main__":
 
-    if len(sys.argv)!=2:
-        sys.exit("Must specify a stage. Stage 1 runs chains; stage 2 initializes with chains and runs optimization; stage 3 initializes with samples and runs diagonalization")
-
-    stage = int(sys.argv[1])
-    if stage!=1 and stage!=2 and stage!=3:
-        sys.exit("Invalid stage. Stage 1 runs chains; stage 2 initializes with chains and runs optimization; stage 3 initializes with samples and runs diagonalization")
-
     dir = os.getcwd()
     results_dir = os.path.join(dir, 'results/nips')
-    chain_results_dir = os.path.join(results_dir, 'chains')
-    optimized_results_dir = os.path.join(results_dir, 'optimized')
     try:
         os.mkdir(results_dir, 0755)
-    except OSError:
-        pass
-    try:
-        os.mkdir(chain_results_dir, 0755)
-    except OSError:
-        pass
-    try:
-        os.mkdir(optimized_results_dir, 0755)
     except OSError:
         pass
 
@@ -67,10 +50,10 @@ if __name__ == "__main__":
     batchcount = int(subprocess.Popen(["squeue -u $(whoami) | wc | tr -s ' ' | cut -d\  -f2"], shell=True, stdout=subprocess.PIPE).communicate()[0])-1
     if batchcount>=MAX_JOBS:
         sys.exit("Job limit reached (%d/%d)" % (batchcount,MAX_JOBS))
-    raw_input("About to submit up to %d STAGE %d batches. Press enter to continue (ctrl+c to cancel) " % (MAX_JOBS,stage))
+    raw_input("About to submit up to %d batches. Press enter to continue (ctrl+c to cancel) " % (MAX_JOBS))
     print "go!"
     batch = []
-    for job in multiann.jobs(stage, FIRST_EXPERIMENT, chain_results_dir, optimized_results_dir, "%im"%mem):
+    for job in multiann.jobs(FIRST_EXPERIMENT, results_dir, "%im"%mem):
         if job is not None:
             # build and submit batches
             batch.append(job)
