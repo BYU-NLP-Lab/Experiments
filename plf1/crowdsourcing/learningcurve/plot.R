@@ -45,30 +45,44 @@ summarySE <- function(dataframe=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
   return(datac)
 }
 
-nameRows <- function(dat,name,
-                     labeling_strategy,unannotated_document_weight,optimization,doc_scaled,truncate_unannotated){
-  rowDocScaled <- dat$pre_normalize_documents>-1
-  desiredDocScaled <- if(is.null(doc_scaled)) rowDocScaled else doc_scaled
-  rowOptimization <- grepl("maximize", dat$training)
-  desiredOptimization <- if(is.null(optimization)) rowOptimization else optimization
-  rowTruncateUnannotated <- dat$truncate_unannotated_data=='true'
-  desiredTruncateUnannotated <- if(is.null(truncate_unannotated)) rowTruncateUnannotated else truncate_unannotated
-  desiredLabelingStrategy <- if(is.null(labeling_strategy)) dat$labeling_strategy else labeling_strategy
-  desiredUnannotatedDocumentWeight <- if(is.null(unannotated_document_weight)) dat$unannotated_document_weight else unannotated_document_weight
-  desiredUnannotatedDocumentWeight <- if(is.numeric(desiredUnannotatedDocumentWeight)) as.double(as.character(desiredUnannotatedDocumentWeight)) else desiredUnannotatedDocumentWeight
-  rowUnannotatedDocumentWeight <- if(is.null(dat$unannotated_document_weight)) desiredUnannotatedDocumentWeight else dat$unannotated_document_weight
-  rowUnannotatedDocumentWeight <- if(is.numeric(desiredUnannotatedDocumentWeight)) as.double(as.character(rowUnannotatedDocumentWeight)) else rowUnannotatedDocumentWeight
-  rows <- which(dat$labeling_strategy==desiredLabelingStrategy &
-                  rowUnannotatedDocumentWeight==desiredUnannotatedDocumentWeight &
-                  rowOptimization==desiredOptimization &
-                  rowTruncateUnannotated==desiredTruncateUnannotated &
-                  rowDocScaled==desiredDocScaled)
-  dat$algorithm[rows] <- name
+isOptimization <- function(dat){
+  return(grepl("maximize", dat$training))
+}
+
+hasHyperTuning <- function(tuningMethod){
+  function(dat){
+    return(grepl(tuningMethod, dat$hyperparam_training))
+  }
+}
+
+isLabelingStrategy <- function(labeling_strategy){
+  function(dat){
+    desiredLabelingStrategy <- if(is.null(labeling_strategy)) dat$labeling_strategy else labeling_strategy
+    return(dat$labeling_strategy==desiredLabelingStrategy)
+  }
+}
+
+not <- function(f){
+  function(dat){
+    return(!f(dat))
+  } 
+}
+
+nameRows <- function(dat,name,...){
+  criteria <- list(...)
+  # start with everything matched
+  matchedRows <- rep(TRUE,length(dat))
+  # intersection of rows that match each criterion
+  for (criterion in criteria){
+    matchedRows <- matchedRows & criterion(data)
+  }
+  # add algorithm name to matched rows
+  dat$algorithm[which(matchedRows)] <- name
   return(dat)
 }
 
 
-massageData <- function(dat,sampled_results=FALSE){
+massageData <- function(dat){
   dat$labeled_acc = as.numeric(as.character(dat$labeled_acc))
   dat$heldout_acc = as.numeric(as.character(dat$heldout_acc))
   dat$top3_labeled_acc = as.numeric(as.character(dat$top3_labeled_acc))
@@ -81,48 +95,55 @@ massageData <- function(dat,sampled_results=FALSE){
   dat$truncate_unannotated_data <- if (is.null(dat$truncate_unannotated_data)) rep('false',num_rows) else dat$truncate_unannotated_data
   
   # baselines
-  #   dat <- nameRows(dat,'hard baseline',        'baseline', NULL,   NULL, TRUE, NULL)
-  dat <- nameRows(dat,'baseline',   'ubaseline',NULL,      NULL, TRUE, NULL)  
+  dat <- nameRows(dat, 'baseline', isLabelingStrategy('ubaseline'))
   
   # itemresp variants
-  if (sampled_results){
-    dat <- nameRows(dat,'itemresp_s',        'itemresp',NULL,  FALSE, TRUE, NULL) 
-  }
-  dat <- nameRows(dat,'itemresp',    'itemresp',NULL,       TRUE, TRUE, NULL)  
-  dat <- nameRows(dat,'varitemresp',    'varitemresp',NULL,       TRUE, TRUE, NULL)    
+  dat <- nameRows(dat, 'itemresp_s', isLabelingStrategy('itemresp'), not(isOptimization), hasHyperTuning("none"))
+  dat <- nameRows(dat, 'itemresp_s_grid', isLabelingStrategy('itemresp'), not(isOptimization), hasHyperTuning("GRID"))
+  dat <- nameRows(dat, 'itemresp_s_bob', isLabelingStrategy('itemresp'), not(isOptimization), hasHyperTuning("BOBYQA"))
+  dat <- nameRows(dat, 'itemresp', isLabelingStrategy('itemresp'), isOptimization, hasHyperTuning("none"))
+  dat <- nameRows(dat, 'itemresp_grid', isLabelingStrategy('itemresp'), isOptimization, hasHyperTuning("GRID"))
+  dat <- nameRows(dat, 'itemresp_bob', isLabelingStrategy('itemresp'), isOptimization, hasHyperTuning("BOBYQA"))
+  dat <- nameRows(dat, 'varitemresp', isLabelingStrategy('varitemresp'), isOptimization, hasHyperTuning("none"))  
+  dat <- nameRows(dat, 'varitemresp_grid', isLabelingStrategy('varitemresp'), isOptimization, hasHyperTuning("GRID"))  
+  dat <- nameRows(dat, 'varitemresp_bob', isLabelingStrategy('varitemresp'), isOptimization, hasHyperTuning("BOBYQA"))  
   
   # neutered variants
-  if (sampled_results){
-    dat <- nameRows(dat,'momresp_s',        'momresp',NULL,     FALSE, TRUE, NULL)  
-  }
-  dat <- nameRows(dat,'momresp',    'momresp',NULL,       TRUE, TRUE, NULL)
-  dat <- nameRows(dat,'varmomresp',    'varmomresp',NULL,       TRUE, TRUE, NULL)
+  dat <- nameRows(dat, 'momresp_s', isLabelingStrategy('momresp'), not(isOptimization))
+  dat <- nameRows(dat, 'momresp', isLabelingStrategy('momresp'), isOptimization)
+  dat <- nameRows(dat, 'varmomresp', isLabelingStrategy('varmomresp'), isOptimization)
   
   # multiresp variants
-  if (sampled_results){
-    dat <- nameRows(dat,'multiresp_s',        'multiresp',NULL,      FALSE, TRUE, NULL)
-  }
-  dat <- nameRows(dat,'multiresp',    'multiresp',NULL,      TRUE, TRUE, NULL)   
-  dat <- nameRows(dat,'varmultiresp',    'varmultiresp',NULL,      TRUE, TRUE, NULL)   
+  dat <- nameRows(dat, 'multiresp_s', isLabelingStrategy('multiresp'), not(isOptimization))
+  dat <- nameRows(dat, 'multiresp', isLabelingStrategy('multiresp'), isOptimization)
+  dat <- nameRows(dat, 'varmultiresp', isLabelingStrategy('varmultiresp'), isOptimization)
   
   # raykar varians
-  dat <- nameRows(dat,'raykar_st',    'raykar',NULL,      TRUE, TRUE, NULL)   
-  dat <- nameRows(dat,'raykar',    'rayktrunc',NULL,      TRUE, TRUE, NULL)   
-  dat <- nameRows(dat,'varraykar',    'varrayk',NULL,       TRUE, TRUE, NULL)
+  dat <- nameRows(dat, 'raykar_st', isLabelingStrategy('raykar'), isOptimization)
+  dat <- nameRows(dat, 'raykar', isLabelingStrategy('rayktrunc'), isOptimization)
+  dat <- nameRows(dat, 'varraykar', isLabelingStrategy('varrayk'), isOptimization)
+  
+  # cslda
+  dat <- nameRows(dat, 'cslda', isLabelingStrategy('cslda'), isOptimization, hasHyperTuning("none"))
+  dat <- nameRows(dat, 'cslda_grid', isLabelingStrategy('cslda'), isOptimization, hasHyperTuning("GRID"))
+  
   #dat <- nameRows(dat,'multiresp_du0_s',    'multiresp',0,      FALSE, TRUE)  
   #dat <- nameRows(dat,'multiresp_du0','multiresp',0,       TRUE, TRUE)   
   #   dat <- nameRows(dat,'multiresp_bin_s',    'multiresp','binary_classifier',FALSE,TRUE)
   #   dat <- nameRows(dat,'multiresp_bin','multiresp','binary_classifier',TRUE,TRUE)
 
   # make 'algorithm' into factor (and re-order)
-  dat$algorithm <- factor(dat$algorithm, levels=c('itemresp_s','itemresp','varitemresp','varmomresp','momresp_s','momresp','multiresp_sm','multiresp_s','multiresp_m','multiresp','varmultiresp','varraykar','raykar_st','raykar','baseline','invalid')) 
-  
-  # rename annotator accuracies and re-order
-  require(plyr)
-  dat$accuracy_level <- mapvalues(dat$accuracy_level, from=c('NOISY','VERY_NOISY','CROWD','null'), to=c('HIGH','MED','LOW','NA'))
-  dat$accuracy_level <- factor(dat$accuracy_level, levels = c('CONFLICT','LOW','MED','HIGH','NA'))
+  dat$algorithm <- factor(dat$algorithm, levels=c(
+    'cslda','cslda_grid',
+    'itemresp_s','itemresp_s_grid','itemresp_s_bob','itemresp','itemresp_grid','itemresp_bob',
+    'varitemresp','varitemresp_grid','varitemresp_bob',
+    'varmomresp','momresp_s','momresp',
+    'multiresp_sm','multiresp_s','multiresp_m','multiresp','varmultiresp',
+    'varraykar','raykar_st','raykar',
+    'baseline','invalid')) 
   
   # rename k to 'd' and re-order
+  require(plyr)
   dat$d <- sprintf("d = %d",dat$k)
   dat$d <- factor(dat$d, levels = c('d = 1','d = 2','d = 3','d = 5','d = 10'))
   
@@ -153,16 +174,16 @@ plotAlgorithms <- function(dat, yvarname, title, ymin=0, ymax=1, ylabel="Accurac
     gsub('\\.0','',format(x))
   }
 
-  if (is.null(dat$num_instances_annotated)){
-    dat$num_instances_annotated <- round(dat$num_annotations / d$k)
+  if (is.null(dat$num_annotated_instances)){
+    dat$num_annotated_instances <- round(dat$num_annotations / d$k)
   }
 
-  dfc <- summarySE(dat, measurevar=yvarname, groupvars=c("algorithm","num_instances_annotated","d","accuracy_level","corpus","diagonalization_method"))
+  dfc <- summarySE(dat, measurevar=yvarname, groupvars=c("algorithm","num_annotated_instances","d","accuracy_level","corpus","diagonalization_method"))
   if (!is.null(divisor)){
-    dfc$num_instances_annotated <- dfc$num_instances_annotated/divisor
+    dfc$num_annotated_instances <- dfc$num_annotated_instances/divisor
   }
 
-  plt <- ggplot(dat=dfc, aes_string(x="num_instances_annotated", y=yvarname, color="algorithm", group="algorithm")) + 
+  plt <- ggplot(dat=dfc, aes_string(x="num_annotated_instances", y=yvarname, color="algorithm", group="algorithm")) + 
     ggtitle(title) +
     geom_errorbar(aes_string(ymin=sprintf("%s-sd",yvarname), ymax=sprintf("%s+sd",yvarname))) +
     geom_line(size=0.8) +
@@ -214,10 +235,15 @@ stop()
 #install.packages("ggplot2")
 require(ggplot2)
 setwd('/aml/home/plf1/git/Experiments/plf1/crowdsourcing/learningcurve/csv')
-# data = read.csv("2014-08-08.csv")
-# data = read.csv("2014-10-07-partial-nips.csv")
-# data = read.csv("2014-10-08-partial-nips.csv")
+data = read.csv("2014-08-08.csv")
+data = read.csv("2014-10-07-partial-nips.csv")
+data = read.csv("2014-10-08-partial-nips.csv")
 data = read.csv("2015-01-16-after-refactoring.csv")
+data = read.csv("2015-01-22-hyperparameter-tuning.csv")
+data = read.csv("2015-01-23-hyperparam-tuning-wrtla.csv")
+data = read.csv("2015-01-27-icml.csv")
+data = read.csv("2015-01-30-optimized-sampler-cslda.csv")
+
 
 # stop execution after reading data.proceed manually
 stop()
@@ -225,7 +251,7 @@ stop()
 #########################################################
 #             Prototyping
 #########################################################
-mdata <- massageData(data,sampled_results=TRUE)
+mdata <- massageData(data)
 # choose a dataset
 # d = mdata[which(mdata$corpus=="REUTERS"),]
 d = mdata[which(mdata$corpus=="ENRON"),]
@@ -241,12 +267,30 @@ d = mdata[which(mdata$corpus=="CFGROUPS1000"),]
 
 d = d[which(d$diagonalization_method=="GOLD"),]
 d = d[which(d$num_annotations<1000),]
-d = d[which(d$algorithm=="baseline" | d$algorithm=="varmomresp" | d$algorithm=="varraykar"),]
+d = d[which(d$algorithm=="itemresp" | d$algorithm=="varitemresp" | d$algorithm=="itemresp_s" ),]
+d = d[which(d$algorithm=="itemresp_bob" | d$algorithm=="varitemresp_bob" | d$algorithm=="itemresp_s_bob" ),]
+alg <- "cslda"
+d = d[which(d$algorithm=="baseline" | d$algorithm==alg | d$algorithm==paste(alg,'bob',sep='_') | d$algorithm==paste(alg,'grid',sep='_') ),]
+d = d[which(d$algorithm==alg | d$algorithm==paste(alg,'bob',sep='_') | d$algorithm==paste(alg,'grid',sep='_') ),]
+d = d[which(d$algorithm==alg | d$algorithm==paste(alg,'grid',sep='_') ),]
+d = d[which(d$algorithm==alg | d$algorithm==paste(alg,'bob',sep='_') ),]
+d = d[which(d$algorithm==paste(alg,'bob',sep='_') ),]
+d = d[which(d$algorithm==alg),]
+e = d[which(d$algorithm=="itemresp_grid"),]
+f = d[which(d$algorithm=="itemresp_bob"),]
+f = d[which(d$algorithm=="itemresp_s"),]
+d = d[which(d$algorithm=="itemresp" | d$algorithm=="varitemresp" | d$algorithm=="itemresp_s"),]
+d = d[which(d$algorithm=="itemresp_grid" | d$algorithm=="varitemresp_grid" | d$algorithm=="itemresp_s_grid"),]
+d = d[which(d$algorithm=="itemresp_bob" | d$algorithm=="varitemresp_bob" | d$algorithm=="itemresp_s_bob"),]
 
 #d = d[which(d$accuracy_level!='CONFLICT'),]
 #d = d[which(d$accuracy_level=='CONFLICT'),]
 
 plotAlgorithms(d,"labeled_acc","Inferred Label Accuracy",ymin=0,corpusFacet=TRUE,qualityFacet=TRUE,depthFacet=TRUE)
+plotAlgorithms(d,"btheta","BTheta",ymin=0,ymax=2.5,corpusFacet=TRUE,qualityFacet=TRUE,depthFacet=TRUE)
+plotAlgorithms(d,"bgamma","BGamma",ymin=0,corpusFacet=TRUE,qualityFacet=TRUE,depthFacet=TRUE)
+plotAlgorithms(d,"cgamma","CGamma",ymin=0,ymax=50,corpusFacet=TRUE,qualityFacet=TRUE,depthFacet=TRUE)
+plotAlgorithms(d,"bphi","CGamma",ymin=0,ymax=2,corpusFacet=TRUE,qualityFacet=TRUE,depthFacet=TRUE)
 plotAlgorithms(d,"top3_labeled_acc","Top 3 Labeled Accuracy",ymin=0)
 plotAlgorithms(d,"unannotated_document_weight","Lambda",ymin=0)
 plotAlgorithms(d,"num_trusted_labels","Num Trusted Labels",ymin=0,ymax=510)
@@ -296,7 +340,7 @@ setwd('/aml/home/plf1/altgit/statnlp/scripts/learningcurve/csv')
 #data = read.csv("2014-10-09-nips.csv")
 data = read.csv("2014-12-04-naacl-withchains.csv")
 #data = read.csv("2014-12-04-naacl.csv")
-mdata <- massageData(data,sampled_results=TRUE)
+mdata <- massageData(data)
 # rename 'varmomresp' -> 'momresp', 'varraykar' -> 'logresp'
 mdata$algorithm <- mapvalues(mdata$algorithm, from=c('varmomresp','varraykar','baseline','raykar','momresp_s'), to=c('MomResp','LogResp','Majority','LogResp+EM',"MomResp+Gibbs"))
 
@@ -405,7 +449,7 @@ ggsave("zoomed-labeled.eps",width=14,height=14,units='cm')
 width <- 8
 height <- 9
 units <- 'in'
-mdata <- massageData(data,sampled_results=TRUE) 
+mdata <- massageData(data) 
 
 # -----newsgroups------
 d = mdata[which(mdata$corpus=="NEWSGROUPS"),]
