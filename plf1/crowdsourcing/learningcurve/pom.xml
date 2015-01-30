@@ -15,6 +15,19 @@
 			<!-- get this dependency version right for paper archives! It should NOT be a snapshot! -->
 			<version>0.0.1-SNAPSHOT</version> 
 		</dependency>
+    <!-- logging -->
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+      <version>2.1</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>2.1</version>
+      <optional>true</optional>
+    </dependency>
 	</dependencies>
 
   <!-- In-house repos that should be searched for artifact download -->

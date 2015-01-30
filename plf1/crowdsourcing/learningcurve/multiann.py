@@ -55,7 +55,7 @@ def jobs(first_experiment, results_dir, mem):
 
     # java runtime
     main = 'edu.byu.nlp.al.app.CrowdsourcingLearningCurve'
-    classpath = ['"target/dependency/*"'] #glob.glob('target/dependency/*')
+    classpath = ['"target/dependency/*"',"config"] #glob.glob('target/dependency/*')
     java = "java -Xmx{mem} -cp {classpath} {main}".format(mem=mem, classpath=':'.join(classpath), main=main)
     javacommand = 'cd {cwd} && {java}'.format(cwd=os.getcwd(), java=java)
 
@@ -80,10 +80,10 @@ def jobs(first_experiment, results_dir, mem):
             'zip:data/newsgroups.zip',
             #'data/cfgroups1000',
             #'data/dredze/derived',
-            #'zip:data/enron.zip',
+            'zip:data/enron.zip',
             #'zip:data/r8.zip',
-            #'zip:data/webkb.zip',
-            #'zip:data/cade12.zip',
+            'zip:data/webkb.zip',
+            'zip:data/cade12.zip',
             #'zip:data/r52.zip',
             )),
         ('--dataset-type', broom.Mapper('--basedir',{
@@ -105,16 +105,16 @@ def jobs(first_experiment, results_dir, mem):
             'dredze':'1v0.json',
             },default='full_set',matchsubstrings=True).generator),
         ('--eval-point', broom.Mapper('--basedir',{
-            'naivebayes-20':parabolic_points(64,60000,num_evalpoints),
-            'newsgroups':parabolic_points(64,60000,num_evalpoints),
-            'ng':parabolic_points(64,60000,num_evalpoints),
-            'cfgroups1000':parabolic_points(64,10000,num_evalpoints),
-            'dredze':parabolic_points(64,21000,num_evalpoints),
-            'cade12':parabolic_points(64,200000,num_evalpoints),
-            'enron':parabolic_points(64,14000,num_evalpoints),
-            'r8':parabolic_points(64,22000,num_evalpoints),
-            'r52':parabolic_points(64,25000,num_evalpoints),
-            'webkb':parabolic_points(64,12000,num_evalpoints),
+            'naivebayes-20':parabolic_points(150,60000,num_evalpoints),
+            'newsgroups':parabolic_points(150,60000,num_evalpoints),
+            'ng':parabolic_points(150,60000,num_evalpoints),
+            'cfgroups1000':parabolic_points(150,10000,num_evalpoints),
+            'dredze':parabolic_points(150,21000,num_evalpoints),
+            'cade12':parabolic_points(150,200000,num_evalpoints),
+            'enron':parabolic_points(150,14000,num_evalpoints),
+            'r8':parabolic_points(150,22000,num_evalpoints),
+            'r52':parabolic_points(150,25000,num_evalpoints),
+            'webkb':parabolic_points(150,12000,num_evalpoints),
             }, matchsubstrings=True).generator),
         ('--feature-normalization-constant',broom.Mapper('--basedir',{
             'dredze':10,
@@ -134,8 +134,8 @@ def jobs(first_experiment, results_dir, mem):
         ('--accuracy-level', broom.Mapper('--annotation-strategy',{
             'real':None,
             #'grr':("LOW"),
-            #'grr':("LOW","CONFLICT"),
-            'grr':("HIGH","MED","LOW","CONFLICT"),
+            'grr':("HIGH","LOW","CONFLICT"),
+            #'grr':("HIGH","MED","LOW","CONFLICT"),
             }).generator),
         ('-k', broom.Mapper('--annotation-strategy',{
             'real':None,
@@ -160,10 +160,10 @@ def jobs(first_experiment, results_dir, mem):
         #('--labeling-strategy',['ubaseline','varitemresp','varmomresp','varrayk']), 
         #('--labeling-strategy',['ubaseline','varitemresp','varmomresp','varrayk','rayktrunc']), 
         #('--labeling-strategy',['ubaseline','itemresp','momresp','multiresp','varitemresp','varmomresp','varmultiresp','rayktrunc','varrayk','cslda']), 
-        ('--labeling-strategy','itemresp'), 
-        #('--labeling-strategy',['ubaseline','itemresp','varitemresp']), 
+        #('--labeling-strategy','itemresp'), 
+        ('--labeling-strategy',['cslda','ubaseline','varmomresp']), 
         ('--training',broom.Mapper('--labeling-strategy',{
-            'cslda':'sample-z-250:sample-y-10:maximize-all',
+            'cslda':'sample-all-500',
         },default='maximize-all').generator),
         ('--diagonalization-method',"GOLD"),
         ('--gold-instances-for-diagonalization',-1),
@@ -171,10 +171,10 @@ def jobs(first_experiment, results_dir, mem):
         ('--training-percent', 85), 
         ('--validation-percent', 10), 
         ('--hyperparam-training', broom.Mapper('--labeling-strategy',{
-            'ubaseline': 'maximize-all-NONE',
-            'baseline': 'maximize-all-NONE',
-            'cslda': ['maximize-btheta,bphi-GRID-1-cslda-joint-maximize-z:maximize-bgamma,cgamma-GRID-1-itemresp-acc-maximize-all','maximize-none-NONE'],
-        },default='maximize-all-GRID').generator), 
+            'cslda': ['maximize-bgamma+cgamma-GRID-1-itemresp-acc-maximize-all'],
+            'itemresp': ['maximize-btheta+bgamma+cgamma-GRID-1'],
+            'momresp': ['maximize-btheta+bphi+bgamma+cgamma-GRID-1'],
+        },default='none',matchsubstrings=True).generator), 
         #('--truncate-unannotated-data', broom.Mapper('--labeling-strategy',{
         #    'multiresp':('',None), # run multiresp with and without this option
         #    'momresp':('',None), # run multiresp with and without this option
