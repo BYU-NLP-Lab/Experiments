@@ -233,11 +233,15 @@ plotAlgorithms <- function(dat, yvarname, title, ymin=0, ymax=1, ylabel="Accurac
   return(plt)
 }
 
-stop()
-
+# setup paths and packages
 #install.packages("ggplot2")
 require(ggplot2)
-setwd('/aml/home/plf1/git/Experiments/plf1/crowdsourcing/learningcurve/csv')
+setwd('/aml/home/plf1/git/Experiments/plf1/cslda-paper/csv')
+
+
+# stop execution --- proceed manually
+stop()
+
 data = read.csv("2014-08-08.csv")
 data = read.csv("2014-10-07-partial-nips.csv")
 data = read.csv("2014-10-08-partial-nips.csv")
@@ -250,10 +254,7 @@ data = read.csv("2015-01-31-optimized-sampler-cslda.csv")
 data = read.csv("2015-02-02-icml.csv")
 data = read.csv("2015-02-03-icml-withoutreplacement.csv")
 data = read.csv("2015-02-04-topics.csv")
-
-
-# stop execution after reading data.proceed manually
-stop()
+data = read.csv("2015-02-04-fitted-annotators.csv")
 
 #########################################################
 #             Prototyping

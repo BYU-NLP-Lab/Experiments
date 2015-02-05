@@ -19,6 +19,14 @@ def jobname(keys,state,delim=':',equals=''):
     #print state['--eval-point']
     keys = [key for key in keys if '-' in str(key)] # only include options
     keys = [key for key in keys if 'file' not in key] # exclude undesirable opts
+    # manual tweaks
+    keys.append('--annotator-file')
+    keys.remove('--b-theta')
+    keys.remove('--b-phi')
+    keys.remove('--b-mu')
+    keys.remove('--c-mu')
+    keys.remove('--b-gamma')
+    keys.remove('--c-gamma')
     parts = []
     for key in keys:
         parts.append("%s%s%s" % (broom.shorten_option(key,maxlength=4),equals,shortenval(state[key],maxlength=9)))
@@ -55,7 +63,7 @@ def jobs(first_experiment, results_dir, mem):
 
     # java runtime
     main = 'edu.byu.nlp.al.app.CrowdsourcingLearningCurve'
-    classpath = ['"target/dependency/*"',"config"] #glob.glob('target/dependency/*')
+    classpath = ['config','"target/dependency/*"'] 
     java = "java -Xmx{mem} -cp {classpath} {main}".format(mem=mem, classpath=':'.join(classpath), main=main)
     javacommand = 'cd {cwd} && {java}'.format(cwd=os.getcwd(), java=java)
 
@@ -77,7 +85,7 @@ def jobs(first_experiment, results_dir, mem):
         ('--basedir',(
             #'data/naivebayes-20',
             #'data/multiresp-2.tgz',
-            #'data/newsgroups',
+            'data/newsgroups',
             'data/cfgroups1000',
             #'data/dredze/derived',
             #'data/enron',
@@ -133,15 +141,15 @@ def jobs(first_experiment, results_dir, mem):
             }, default='kdeep', matchsubstrings=True).generator),
         ('--annotator-accuracy', broom.Mapper('--annotation-strategy',{
             'real':None,
-            #'kdeep':("LOW"),
-            'kdeep':("EXPERT","CONFLICT"),
+            'kdeep':("FILE","LOW","EXPERT","CONFLICT"),
             #'kdeep':("HIGH","MED","LOW","CONFLICT"),
             }).generator),
+        ('--annotator-file', broom.Mapper('--annotator-accuracy',{
+            'FILE':("/aml/home/plf1/git/Experiments/plf1/cslda-paper/annotators/all","/aml/home/plf1/git/Experiments/plf1/cslda-paper/annotators/kmeans-5","/aml/home/plf1/git/Experiments/plf1/cslda-paper/annotators/kmeans-20","/aml/home/plf1/git/Experiments/plf1/cslda-paper/annotators/kmeans-50"),
+            }, default=None).generator),
         ('-k', broom.Mapper('--annotation-strategy',{
             'real':None,
             'kdeep':(3),
-            #'kdeep':(1,2,3,5),
-            #'kdeep':(1,2,3,5,10),
             }).generator),
 
         # observed trusted labels
@@ -161,8 +169,8 @@ def jobs(first_experiment, results_dir, mem):
         #('--labeling-strategy',['ubaseline','varitemresp','varmomresp','varrayk','rayktrunc']), 
         #('--labeling-strategy',['ubaseline','itemresp','momresp','multiresp','varitemresp','varmomresp','varmultiresp','rayktrunc','varrayk','cslda']), 
         #('--labeling-strategy','itemresp'), 
-        ('--labeling-strategy',['cslda']), 
-        #('--labeling-strategy',['cslda','ubaseline','varmomresp','varitemresp','varrayk']), 
+        #('--labeling-strategy',['cslda']), 
+        ('--labeling-strategy',['cslda','ubaseline','varmomresp','varitemresp','varrayk']), 
         #('--labeling-strategy',['ubaseline','varmomresp']), 
         ('--num-topics',('20','100','500','1000')),
         ('--training',broom.Mapper('--labeling-strategy',{
