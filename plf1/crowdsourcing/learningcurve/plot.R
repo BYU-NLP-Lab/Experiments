@@ -71,10 +71,10 @@ not <- function(f){
 nameRows <- function(dat,name,...){
   criteria <- list(...)
   # start with everything matched
-  matchedRows <- rep(TRUE,length(dat))
+  matchedRows <- rep(TRUE,dim(dat)[1])
   # intersection of rows that match each criterion
   for (criterion in criteria){
-    matchedRows <- matchedRows & criterion(data)
+    matchedRows <- matchedRows & criterion(dat)
   }
   # add algorithm name to matched rows
   dat$algorithm[which(matchedRows)] <- name
@@ -124,6 +124,8 @@ massageData <- function(dat){
   dat <- nameRows(dat, 'varraykar', isLabelingStrategy('varrayk'), isOptimization)
   
   # cslda
+  dat <- nameRows(dat, 'cslda_s', isLabelingStrategy('cslda'), not(isOptimization), hasHyperTuning("none"))
+  dat <- nameRows(dat, 'cslda_s_grid', isLabelingStrategy('cslda'), not(isOptimization), hasHyperTuning("GRID"))
   dat <- nameRows(dat, 'cslda', isLabelingStrategy('cslda'), isOptimization, hasHyperTuning("none"))
   dat <- nameRows(dat, 'cslda_grid', isLabelingStrategy('cslda'), isOptimization, hasHyperTuning("GRID"))
   
@@ -133,14 +135,15 @@ massageData <- function(dat){
   #   dat <- nameRows(dat,'multiresp_bin','multiresp','binary_classifier',TRUE,TRUE)
 
   # make 'algorithm' into factor (and re-order)
-  dat$algorithm <- factor(dat$algorithm, levels=c(
-    'cslda','cslda_grid',
-    'itemresp_s','itemresp_s_grid','itemresp_s_bob','itemresp','itemresp_grid','itemresp_bob',
-    'varitemresp','varitemresp_grid','varitemresp_bob',
-    'varmomresp','momresp_s','momresp',
-    'multiresp_sm','multiresp_s','multiresp_m','multiresp','varmultiresp',
-    'varraykar','raykar_st','raykar',
-    'baseline','invalid')) 
+  dat$algorithm <- factor(dat$algorithm)
+#   dat$algorithm <- factor(dat$algorithm, levels=c(
+#     'cslda','cslda_grid',
+#     'itemresp_s','itemresp_s_grid','itemresp_s_bob','itemresp','itemresp_grid','itemresp_bob',
+#     'varitemresp','varitemresp_grid','varitemresp_bob',
+#     'varmomresp','momresp_s','momresp',
+#     'multiresp_sm','multiresp_s','multiresp_m','multiresp','varmultiresp',
+#     'varraykar','raykar_st','raykar',
+#     'baseline','invalid')) 
   
   # rename k to 'd' and re-order
   require(plyr)
@@ -243,6 +246,8 @@ data = read.csv("2015-01-22-hyperparameter-tuning.csv")
 data = read.csv("2015-01-23-hyperparam-tuning-wrtla.csv")
 data = read.csv("2015-01-27-icml.csv")
 data = read.csv("2015-01-30-optimized-sampler-cslda.csv")
+data = read.csv("2015-01-31-optimized-sampler-cslda.csv")
+data = read.csv("2015-02-02-icml.csv")
 
 
 # stop execution after reading data.proceed manually
@@ -253,6 +258,7 @@ stop()
 #########################################################
 mdata <- massageData(data)
 # choose a dataset
+d <- mdata
 # d = mdata[which(mdata$corpus=="REUTERS"),]
 d = mdata[which(mdata$corpus=="ENRON"),]
 d = mdata[which(mdata$corpus=="NB20"),]
@@ -269,7 +275,7 @@ d = d[which(d$diagonalization_method=="GOLD"),]
 d = d[which(d$num_annotations<1000),]
 d = d[which(d$algorithm=="itemresp" | d$algorithm=="varitemresp" | d$algorithm=="itemresp_s" ),]
 d = d[which(d$algorithm=="itemresp_bob" | d$algorithm=="varitemresp_bob" | d$algorithm=="itemresp_s_bob" ),]
-alg <- "cslda"
+alg <- "cslda_s_grid"
 d = d[which(d$algorithm=="baseline" | d$algorithm==alg | d$algorithm==paste(alg,'bob',sep='_') | d$algorithm==paste(alg,'grid',sep='_') ),]
 d = d[which(d$algorithm==alg | d$algorithm==paste(alg,'bob',sep='_') | d$algorithm==paste(alg,'grid',sep='_') ),]
 d = d[which(d$algorithm==alg | d$algorithm==paste(alg,'grid',sep='_') ),]
@@ -290,7 +296,7 @@ plotAlgorithms(d,"labeled_acc","Inferred Label Accuracy",ymin=0,corpusFacet=TRUE
 plotAlgorithms(d,"btheta","BTheta",ymin=0,ymax=2.5,corpusFacet=TRUE,qualityFacet=TRUE,depthFacet=TRUE)
 plotAlgorithms(d,"bgamma","BGamma",ymin=0,corpusFacet=TRUE,qualityFacet=TRUE,depthFacet=TRUE)
 plotAlgorithms(d,"cgamma","CGamma",ymin=0,ymax=50,corpusFacet=TRUE,qualityFacet=TRUE,depthFacet=TRUE)
-plotAlgorithms(d,"bphi","CGamma",ymin=0,ymax=2,corpusFacet=TRUE,qualityFacet=TRUE,depthFacet=TRUE)
+plotAlgorithms(d,"bphi","BPhi",ymin=0,ymax=2,corpusFacet=TRUE,qualityFacet=TRUE,depthFacet=TRUE)
 plotAlgorithms(d,"top3_labeled_acc","Top 3 Labeled Accuracy",ymin=0)
 plotAlgorithms(d,"unannotated_document_weight","Lambda",ymin=0)
 plotAlgorithms(d,"num_trusted_labels","Num Trusted Labels",ymin=0,ymax=510)

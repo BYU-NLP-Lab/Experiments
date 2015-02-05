@@ -60,7 +60,7 @@ def jobs(first_experiment, results_dir, mem):
     javacommand = 'cd {cwd} && {java}'.format(cwd=os.getcwd(), java=java)
 
     num_evalpoints = 10
-    repeats = 5
+    repeats = 1
     chains = 1 # TODO: consider more for sampling runs
     inputfiles = None # TODO: if necessary, init w chains
 
@@ -76,15 +76,15 @@ def jobs(first_experiment, results_dir, mem):
         # dataset-related params
         ('--basedir',(
             #'data/naivebayes-20',
-            #'tgz:data/multiresp-2.tgz',
-            'zip:data/newsgroups.zip',
-            #'data/cfgroups1000',
+            #'data/multiresp-2.tgz',
+            #'data/newsgroups',
+            'data/cfgroups1000',
             #'data/dredze/derived',
-            'zip:data/enron.zip',
-            #'zip:data/r8.zip',
-            'zip:data/webkb.zip',
-            'zip:data/cade12.zip',
-            #'zip:data/r52.zip',
+            #'data/enron',
+            #'data/r8',
+            #'data/webkb',
+            #'data/cade12',
+            #'data/r52',
             )),
         ('--dataset-type', broom.Mapper('--basedir',{
             'naivebayes-20':'NB20',
@@ -130,18 +130,18 @@ def jobs(first_experiment, results_dir, mem):
         ('--annotation-strategy', broom.Mapper('--basedir',{
             'dredze':'real',
             'cfgroups1000':'real',
-            }, default='grr', matchsubstrings=True).generator),
-        ('--accuracy-level', broom.Mapper('--annotation-strategy',{
+            }, default='kdeep', matchsubstrings=True).generator),
+        ('--annotator-accuracy', broom.Mapper('--annotation-strategy',{
             'real':None,
-            #'grr':("LOW"),
-            'grr':("HIGH","LOW","CONFLICT"),
-            #'grr':("HIGH","MED","LOW","CONFLICT"),
+            #'kdeep':("LOW"),
+            'kdeep':("EXPERT","CONFLICT"),
+            #'kdeep':("HIGH","MED","LOW","CONFLICT"),
             }).generator),
         ('-k', broom.Mapper('--annotation-strategy',{
             'real':None,
-            'grr':(3),
-            #'grr':(1,2,3,5),
-            #'grr':(1,2,3,5,10),
+            'kdeep':(3),
+            #'kdeep':(1,2,3,5),
+            #'kdeep':(1,2,3,5,10),
             }).generator),
 
         # observed trusted labels
@@ -161,7 +161,10 @@ def jobs(first_experiment, results_dir, mem):
         #('--labeling-strategy',['ubaseline','varitemresp','varmomresp','varrayk','rayktrunc']), 
         #('--labeling-strategy',['ubaseline','itemresp','momresp','multiresp','varitemresp','varmomresp','varmultiresp','rayktrunc','varrayk','cslda']), 
         #('--labeling-strategy','itemresp'), 
-        ('--labeling-strategy',['cslda','ubaseline','varmomresp']), 
+        ('--labeling-strategy',['cslda']), 
+        #('--labeling-strategy',['cslda','ubaseline','varmomresp','varitemresp','varrayk']), 
+        #('--labeling-strategy',['ubaseline','varmomresp']), 
+        ('--num-topics',('20','100','500','1000')),
         ('--training',broom.Mapper('--labeling-strategy',{
             'cslda':'sample-all-500',
         },default='maximize-all').generator),
@@ -172,8 +175,8 @@ def jobs(first_experiment, results_dir, mem):
         ('--validation-percent', 10), 
         ('--hyperparam-training', broom.Mapper('--labeling-strategy',{
             'cslda': ['maximize-bgamma+cgamma-GRID-1-itemresp-acc-maximize-all'],
-            'itemresp': ['maximize-btheta+bgamma+cgamma-GRID-1'],
-            'momresp': ['maximize-btheta+bphi+bgamma+cgamma-GRID-1'],
+            'momresp': ['maximize-bgamma+cgamma-GRID-1-itemresp-acc-maximize-all'],
+            'itemresp': ['maximize-bgamma+cgamma-GRID-1'],
         },default='none',matchsubstrings=True).generator), 
         #('--truncate-unannotated-data', broom.Mapper('--labeling-strategy',{
         #    'multiresp':('',None), # run multiresp with and without this option
@@ -256,7 +259,7 @@ def jobs(first_experiment, results_dir, mem):
 
 if __name__ == "__main__":
     import os
-    headn = 3
+    headn = 50
     firstexperiment = 101
 
     outdir = '/tmp/bogus'
@@ -269,7 +272,7 @@ if __name__ == "__main__":
     print '============================================'
     print '= first %d jobs' % headn
     print '============================================'
-    for i,job in enumerate(jobs(firstexperiment,outdir,"1000m")):
+    for i,job in enumerate(jobs(firstexperiment,outdir,"4g")):
         if i<=headn:
             print 
             print job
