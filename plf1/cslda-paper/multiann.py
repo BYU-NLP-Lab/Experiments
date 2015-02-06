@@ -145,7 +145,7 @@ def jobs(first_experiment, results_dir, mem):
             #'kdeep':("HIGH","MED","LOW","CONFLICT"),
             }).generator),
         ('--annotator-file', broom.Mapper('--annotator-accuracy',{
-            'FILE':("/aml/home/plf1/git/Experiments/plf1/cslda-paper/annotators/all","/aml/home/plf1/git/Experiments/plf1/cslda-paper/annotators/kmeans-5","/aml/home/plf1/git/Experiments/plf1/cslda-paper/annotators/kmeans-20","/aml/home/plf1/git/Experiments/plf1/cslda-paper/annotators/kmeans-50"),
+            'FILE':("annotators/all","annotators/kmeans-5","annotators/kmeans-20","annotators/kmeans-50"),
             }, default=None).generator),
         ('-k', broom.Mapper('--annotation-strategy',{
             'real':None,
