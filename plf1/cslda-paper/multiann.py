@@ -141,16 +141,21 @@ def jobs(first_experiment, results_dir, mem):
             }, default='kdeep', matchsubstrings=True).generator),
         ('--annotator-accuracy', broom.Mapper('--annotation-strategy',{
             'real':None,
-            'kdeep':("FILE","LOW","EXPERT","CONFLICT"),
+            'kdeep':"FILE",
+            #'kdeep':("FILE","LOW","EXPERT","CONFLICT"),
             #'kdeep':("HIGH","MED","LOW","CONFLICT"),
             }).generator),
         ('--annotator-file', broom.Mapper('--annotator-accuracy',{
-            'FILE':("annotators/all","annotators/kmeans-5","annotators/kmeans-20","annotators/kmeans-50"),
+            'FILE':("annotators/all","annotators/kmeans-5","annotators/kmeans-20"),
+            #'FILE':("annotators/all","annotators/kmeans-5","annotators/kmeans-20","annotators/kmeans-50"),
             }, default=None).generator),
         ('-k', broom.Mapper('--annotation-strategy',{
             'real':None,
-            'kdeep':(3),
+            'kdeep':3,
             }).generator),
+        ('--num-annotator-clusters', broom.Mapper('--annotation-strategy',{
+            'real':(5,20,-1),
+            }, default=None).generator),
 
         # observed trusted labels
         ('--num-observed-labels',0),
@@ -172,9 +177,10 @@ def jobs(first_experiment, results_dir, mem):
         #('--labeling-strategy',['cslda']), 
         ('--labeling-strategy',['cslda','ubaseline','varmomresp','varitemresp','varrayk']), 
         #('--labeling-strategy',['ubaseline','varmomresp']), 
-        ('--num-topics',('20','100','500','1000')),
+        #('--num-topics',('20','100','500','1000')),
+        ('--num-topics','100'),
         ('--training',broom.Mapper('--labeling-strategy',{
-            'cslda':'sample-all-500',
+            'cslda':'sample-all-1000',
         },default='maximize-all').generator),
         ('--diagonalization-method',"GOLD"),
         ('--gold-instances-for-diagonalization',-1),
@@ -267,7 +273,7 @@ def jobs(first_experiment, results_dir, mem):
 
 if __name__ == "__main__":
     import os
-    headn = 50
+    headn = 500
     firstexperiment = 101
 
     outdir = '/tmp/bogus'
