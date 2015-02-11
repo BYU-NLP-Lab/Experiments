@@ -4,6 +4,9 @@ pushd ..
 mvn clean dependency:copy-dependencies
 popd
 
+# 5 annotators (fit wrt majority vote)
+java -cp "../target/dependency/*" edu.byu.nlp.crowdsourcing.app.CrowdflowerAnnotatorParameterEstimator --json-stream=/aml/data/plf1/cfgroups/cfgroups1000.json --smooth=0.01 --aggregate=KMEANS -k 5 --confusion-matrix-truth=MAJORITY --output=kmeans-maj-5
+
 # 5 annotators
 java -cp "../target/dependency/*" edu.byu.nlp.crowdsourcing.app.CrowdflowerAnnotatorParameterEstimator --json-stream=/aml/data/plf1/cfgroups/cfgroups1000.json --smooth=0.01 --aggregate=KMEANS -k 5 --output=kmeans-5
 
