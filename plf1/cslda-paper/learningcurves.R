@@ -173,7 +173,7 @@ massageData <- function(dat){
 }
 
 plotAlgorithms <- function(dat, yvarname, title, ymin=min(dat[[yvarname]]), ymax=max(dat[[yvarname]]), ylabel="Accuracy", xlabel="Number of annotated instances x %s",
-                           shapesize=1, xlim=NULL, divisor=1000, hideLegend=FALSE, plotFacets="~d~corpus~num_annotators~accuracy_level"
+                           shapesize=1, xlim=NULL, divisor=1000, hideLegend=FALSE, plotFacets="~d~corpus~num_annotators~annotator_accuracy"
                            ){
   # a modified colorblind-friendly pallette from http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
   
@@ -195,7 +195,7 @@ plotAlgorithms <- function(dat, yvarname, title, ymin=min(dat[[yvarname]]), ymax
   groupvars <- c(groupvars, "num_annotated_instances", "algorithm") # include the x axis and line identities (algorithm)
   groupvars <- groupvars[lapply(groupvars,nchar)>0] # remove empty entries
   dfc <- summarySE(dat, measurevar=yvarname, groupvars=groupvars)
-# dfc <- summarySE(dat, measurevar=yvarname, groupvars=c("algorithm","num_annotated_instances","d","accuracy_level","corpus","diagonalization_method"))
+# dfc <- summarySE(dat, measurevar=yvarname, groupvars=c("algorithm","num_annotated_instances","d","annotator_accuracy","corpus","diagonalization_method"))
   if (!is.null(divisor)){
     dfc$num_annotated_instances <- dfc$num_annotated_instances/divisor
   }
@@ -269,13 +269,13 @@ data = read.csv("2015-02-04-topics.csv")
 # showing that cslda is more sensitive to annotator sparsity (having many annotators)
 # than other algorithms. Suggested annotator clustering as a way forward.
 data = read.csv("2015-02-05-fitted-annotators.csv")
+data = read.csv("2015-02-10-acl.csv")
 
 #########################################################
 #             Prototyping
 #########################################################
-mdata <- massageData(data)
+mdata <- massageData(data); d <- mdata
 # choose a dataset
-d <- mdata
 # d = mdata[which(mdata$corpus=="REUTERS"),]
 d = mdata[which(mdata$corpus=="ENRON"),]
 d = mdata[which(mdata$corpus=="NB20"),]
@@ -305,14 +305,14 @@ f = d[which(d$algorithm=="itemresp_s"),]
 d = d[which(d$algorithm=="itemresp" | d$algorithm=="varitemresp" | d$algorithm=="itemresp_s"),]
 d = d[which(d$algorithm=="itemresp_grid" | d$algorithm=="varitemresp_grid" | d$algorithm=="itemresp_s_grid"),]
 d = d[which(d$algorithm=="itemresp_bob" | d$algorithm=="varitemresp_bob" | d$algorithm=="itemresp_s_bob"),]
-d = d[which(d$num_annotators==5 & d$accuracy_level=="LOW"),]
-d = d[which(d$num_annotators==136 & d$accuracy_level=="FILE"),]
-d = d[which(d$num_annotators==50 & d$accuracy_level=="FILE"),]
-d = d[which(d$num_annotators==20 & d$accuracy_level=="FILE"),]
-d = d[which(d$num_annotators==5 & d$accuracy_level=="FILE"),]
+d = d[which(d$num_annotators==5 & d$annotator_accuracy=="LOW"),]
+d = d[which(d$num_annotators==136 & d$annotator_accuracy=="FILE"),]
+d = d[which(d$num_annotators==50 & d$annotator_accuracy=="FILE"),]
+d = d[which(d$num_annotators==20 & d$annotator_accuracy=="FILE"),]
+d = d[which(d$num_annotators==5 & d$annotator_accuracy=="FILE"),]
 
-#d = d[which(d$accuracy_level!='CONFLICT'),]
-#d = d[which(d$accuracy_level=='CONFLICT'),]
+#d = d[which(d$annotator_accuracy!='CONFLICT'),]
+#d = d[which(d$annotator_accuracy=='CONFLICT'),]
 
 plotAlgorithms(d,"labeled_acc","Inferred Label Accuracy",ymin=0)
 plotAlgorithms(d,"log_joint","Inferred Label Accuracy",ymin=min(d$log_joint),ymax=max(d$log_joint))
@@ -341,7 +341,7 @@ d = mdata
 d = d[which(d$corpus=="NEWSGROUPS" & d$num_annotations<=90000),]
 d = d[which(d$algorithm=="Majority" | d$algorithm=="MomResp" | d$algorithm=="LogResp"),]
 d = d[which(d$d=="d = 1"),]
-plotAlgorithms(d,"labeled_acc","20 Newsgroups",xlabel="Number of Simulated Annotations x 1,000",ymin=0.25,divisor=1000,shapesize=2,plotFacets="~d~accuracy_level")
+plotAlgorithms(d,"labeled_acc","20 Newsgroups",xlabel="Number of Simulated Annotations x 1,000",ymin=0.25,divisor=1000,shapesize=2,plotFacets="~d~annotator_accuracy")
 ggsave("newsgroups-labeled.eps",width=20,height=6,units='cm')
 
 # momresp vs logresp *heldout* on newsgroups
@@ -349,7 +349,7 @@ d = mdata
 d = d[which(d$corpus=="NEWSGROUPS" & d$num_annotations<=90000),] 
 d = d[which(d$algorithm=="MomResp" | d$algorithm=="LogResp"),]
 d = d[which(d$d=="d = 1"),]
-plotAlgorithms(d,"heldout_acc","20 Newsgroups",ylabel="Test Accuracy",ymin=0.25,divisor=1000,shapesize=2,plotFacets="~d~accuracy_level")
+plotAlgorithms(d,"heldout_acc","20 Newsgroups",ylabel="Test Accuracy",ymin=0.25,divisor=1000,shapesize=2,plotFacets="~d~annotator_accuracy")
 ggsave("newsgroups-heldout.eps",width=20,height=6,units='cm')
 
 # momresp vs logresp *annacc* on newsgroups
@@ -357,7 +357,7 @@ d = mdata
 d = d[which(d$corpus=="NEWSGROUPS" & d$num_annotations>200 & d$num_annotations<=90000),] 
 d = d[which(d$algorithm=="MomResp" | d$algorithm=="LogResp"),]
 d = d[which(d$d=="d = 1"),]
-plotAlgorithms(d,"annacc_rmse","20 Newsgroups",ylabel="Annotator Accuracy RMSE",ymin=0.,divisor=1000,shapesize=2,plotFacets="~d~accuracy_level")
+plotAlgorithms(d,"annacc_rmse","20 Newsgroups",ylabel="Annotator Accuracy RMSE",ymin=0.,divisor=1000,shapesize=2,plotFacets="~d~annotator_accuracy")
 ggsave("newsgroups-annacc.eps",width=20,height=6,units='cm')
 
 
@@ -378,7 +378,7 @@ d = mdata
 d = d[which(d$corpus=="NEWSGROUPS" & d$num_annotations<=60000),] # only report up til everything has 3 anns
 d = d[which(d$algorithm=="Majority" | d$algorithm=="MomResp" | d$algorithm=="LogResp"),]
 d = d[which(d$d=="d = 3"),]
-plotAlgorithms(d,"labeled_acc","20 Newsgroups",ymin=0.25,divisor=1000,shapesize=2,plotFacets="~d~accuracy_level")
+plotAlgorithms(d,"labeled_acc","20 Newsgroups",ymin=0.25,divisor=1000,shapesize=2,plotFacets="~d~annotator_accuracy")
 ggsave("newsgroups-labeled.eps",width=20,height=6,units='cm')
 
 # old vs new (variational vs EM for logresp) on r52 + med
@@ -387,8 +387,8 @@ d$algorithm <- mapvalues(d$algorithm, from=c('LogResp'), to=c('LogResp+MF'))
 d = d[which(d$corpus=="R52" & d$num_annotations<=30000),]
 d = d[which(d$algorithm=="LogResp+EM" | d$algorithm=="LogResp+MF"),]
 d = d[which(d$d=="d = 3"),]
-d = d[which(d$accuracy_level=="LOW"),]
-plotAlgorithms(d,"labeled_acc","LogResp Inference",ymin=0.,ymax=0.6,divisor=1000,plotFacets="~d~accuracy_level",shapesize=2)
+d = d[which(d$annotator_accuracy=="LOW"),]
+plotAlgorithms(d,"labeled_acc","LogResp Inference",ymin=0.,ymax=0.6,divisor=1000,plotFacets="~d~annotator_accuracy",shapesize=2)
 ggsave("var-versus-em.eps",width=10,height=5,units='cm')
 
 
@@ -400,8 +400,8 @@ d = d[which(d$corpus=="WEBKB" & d$num_annotations<=13000),]
 d = d[which(d$algorithm=="MomResp+Gibbs" | d$algorithm=="MomResp+MF"),]
 d = d[which(d$d=="d = 1"),]
 d$k <- 3
-d = d[which(d$accuracy_level=="MED"),]
-plotAlgorithms(d,"labeled_acc","MomResp Inference",ymin=0.25,divisor=1000,plotFacets="~d~accuracy_level~corpus",shapesize=2)
+d = d[which(d$annotator_accuracy=="MED"),]
+plotAlgorithms(d,"labeled_acc","MomResp Inference",ymin=0.25,divisor=1000,plotFacets="~d~annotator_accuracy~corpus",shapesize=2)
 ggsave("var-versus-gibbs.eps",width=10,height=5,units='cm')
 
 # real (cfgroups1000)
@@ -415,15 +415,15 @@ ggsave("cfgroups1000.eps",width=10,height=5,units='cm')
 # big grid for estimating crossover points (TODO: calculate this automatically)
 d = mdata
 d = d[which(d$algorithm=="MomResp" | d$algorithm=="LogResp" | d$algorithm=="Majority"),]
-#d = d[which(d$corpus=="WEBKB" & d$accuracy_level=="HIGH"),]
+#d = d[which(d$corpus=="WEBKB" & d$annotator_accuracy=="HIGH"),]
 #d = d[which(d$corpus=="WEBKB"),]
 #d = d[which(d$corpus=="R52"),]
 #d = d[which(d$corpus=="CADE12"),]
 #d = d[which(d$corpus=="ENRON"),]
-#d = d[which(d$corpus=="NEWSGROUPS" & d$accuracy_level=="CONFLICT"),]
+#d = d[which(d$corpus=="NEWSGROUPS" & d$annotator_accuracy=="CONFLICT"),]
 #d = d[which(d$d=="d = 1"),]
 d = d[which(d$d=="d = 3"),]
-plotAlgorithms(d,"labeled_acc","Crossover Grid",ymin=0.0,divisor=1000,shapesize=2,plotFacets="~d~accuracy_level~corpus")
+plotAlgorithms(d,"labeled_acc","Crossover Grid",ymin=0.0,divisor=1000,shapesize=2,plotFacets="~d~annotator_accuracy~corpus")
 ggsave("crossover-grid.png",width=20,height=20,units='cm')
 
 
@@ -437,23 +437,23 @@ plotAlgorithms(d,"labeled_acc","Inferred Label Accuracy",ymin=.27,shapesize=1)
 ggsave("newsgroups-labeled.eps",width=20,height=12,units='cm')
 
 # d = mdata[which(mdata$corpus=="NEWSGROUPS"),]
-# d = d[which(d$num_annotations<=60000 & d$k<=3 & (d$accuracy_level=='LOW' | d$accuracy_level=='CONFLICT')),]
+# d = d[which(d$num_annotations<=60000 & d$k<=3 & (d$annotator_accuracy=='LOW' | d$annotator_accuracy=='CONFLICT')),]
 # plotAlgorithms(d,"labeled_acc","",ymin=.25,shapesize=1)
 # ggsave("newsgroups-labeled-zoom.eps",width=14,height=21,units='cm')
 
 d = mdata[which(mdata$corpus=="NEWSGROUPS"),]
-d = d[which((d$k==10 | d$k==1) & (d$accuracy_level=='LOW') & (d$algorithm=='baseline' | d$algorithm=='multiresp')),]
+d = d[which((d$k==10 | d$k==1) & (d$annotator_accuracy=='LOW') & (d$algorithm=='baseline' | d$algorithm=='multiresp')),]
 plotAlgorithms(d,"heldout_acc","",xlim=c(0,5.2), ymin=.2,shapesize=2)
 ggsave("newsgroups-heldout-1.eps",width=14,height=10,units='cm')
 
 # d = mdata[which(mdata$corpus=="NEWSGROUPS"),]
-# d = d[which((d$k==10 | d$k==1) & (d$accuracy_level=='LOW') & (d$algorithm=='baseline' | d$algorithm=='multiresp')),]
+# d = d[which((d$k==10 | d$k==1) & (d$annotator_accuracy=='LOW') & (d$algorithm=='baseline' | d$algorithm=='multiresp')),]
 # plotAlgorithms(d,"heldout_acc","", ymin=.2,shapesize=2)
 # ggsave("newsgroups-heldout-2.eps",width=8,height=10,units='cm')
 
 d = mdata[which(mdata$corpus=="NEWSGROUPS"),]
-#d = d[which(d$k==1 & d$accuracy_level=='LOW'),]
-d = d[which(d$k==1 & (d$accuracy_level=='LOW' | d$accuracy_level=='CONFLICT')),]
+#d = d[which(d$k==1 & d$annotator_accuracy=='LOW'),]
+d = d[which(d$k==1 & (d$annotator_accuracy=='LOW' | d$annotator_accuracy=='CONFLICT')),]
 plotAlgorithms(d,"annacc_rmse","",ymin=0,ymax=.35,ylabel="Annotator RMSE",shapesize=2)
 ggsave("newsgroups-annacc.eps",width=14,height=7,units='cm')
 
@@ -462,13 +462,13 @@ plotAlgorithms(d,"labeled_acc","",ymin=.2,shapesize=1)
 ggsave("enron-labeled.eps",width=20,height=12,units='cm')
 
 # d = mdata[which(mdata$corpus=="ENRON"),]
-# d = d[which(d$num_annotations<=30000 & d$k<=3 & (d$accuracy_level=='LOW' | d$accuracy_level=='CONFLICT')),]
+# d = d[which(d$num_annotations<=30000 & d$k<=3 & (d$annotator_accuracy=='LOW' | d$annotator_accuracy=='CONFLICT')),]
 # plotAlgorithms(d,"labeled_acc","",ymin=.20,shapesize=1)
 # ggsave("enron-labeled-zoom.eps",width=14,height=12,units='cm')
 
 # bi-corpus zoomed-in graph
 d = mdata
-d = d[which((d$k<=3) & (d$accuracy_level=='CONFLICT')),]
+d = d[which((d$k<=3) & (d$annotator_accuracy=='CONFLICT')),]
 plotAlgorithms(d,"labeled_acc","",xlim=c(0,6.2), ymin=.2,shapesize=2,corpusFacet=TRUE)
 ggsave("zoomed-labeled.eps",width=14,height=14,units='cm')
 
