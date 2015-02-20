@@ -19,6 +19,7 @@ def jobname(keys,state,delim=':',equals=''):
     #print state['--eval-point']
     keys = [key for key in keys if '-' in str(key)] # only include options
     keys = [key for key in keys if 'file' not in key] # exclude undesirable opts
+    keys = [key for key in keys if state[key] is not None]
     # manual tweaks
     keys.append('--annotator-file')
     keys.remove('--b-theta')
@@ -52,14 +53,21 @@ class FileNamer():
             raise Exception("file name is longer than 255 characters: \n\t%s" % path.basename(name))
         yield name
 
-def serializedinputfiles(keys,state):
-    yield "infile1 infile2"
-
+class TopicsFileName():
+    def __init__(self,directory):
+        self.directory=directory
+    def generator(self,keys,state):
+        yield None
+        #if 'cslda' in state['--labeling-strategy']:
+        #    filename = "{dr}/{name}-{numtopics}".format(dr=self.directory,name=state['--dataset-type'],numtopics=state['--num-topics'])
+        #    yield filename if path.exists(filename) else None
+        #else:
+        #    yield None
 
 ######################################################
 #                   MAIN
 #####################################################
-def jobs(first_experiment, results_dir, mem):
+def jobs(first_experiment, results_dir, topics_dir, mem):
 
     # java runtime
     main = 'edu.byu.nlp.al.app.CrowdsourcingLearningCurve'
@@ -67,10 +75,9 @@ def jobs(first_experiment, results_dir, mem):
     java = "java -Xmx{mem} -cp {classpath} {main}".format(mem=mem, classpath=':'.join(classpath), main=main)
     javacommand = 'cd {cwd} && {java}'.format(cwd=os.getcwd(), java=java)
 
-    num_evalpoints = 10
+    num_evalpoints = 5
     repeats = 1
     chains = 1 # TODO: consider more for sampling runs
-    inputfiles = None # TODO: if necessary, init w chains
 
     # sweep parameters
     cwd = os.getcwd()
@@ -85,12 +92,13 @@ def jobs(first_experiment, results_dir, mem):
         ('--basedir',(
             #'data/naivebayes-20',
             #'data/multiresp-2.tgz',
+            'data/cfsimplegroups1000a',
             'data/newsgroups',
             'data/cfgroups1000',
             #'data/dredze/derived',
             #'data/enron',
             #'data/r8',
-            #'data/webkb',
+            'data/webkb',
             #'data/cade12',
             #'data/r52',
             )),
@@ -98,7 +106,7 @@ def jobs(first_experiment, results_dir, mem):
             'naivebayes-20':'NB20',
             'multiresp-2':'NB2',
             'newsgroups':'NEWSGROUPS',
-            'cfgroups1000':'CFGROUPS1000',
+            'groups1000':'CFGROUPS1000',
             'ng':'NG',
             'enron':'ENRON',
             'dredze':'DREDZE',
@@ -109,6 +117,7 @@ def jobs(first_experiment, results_dir, mem):
             },matchsubstrings=True).generator),
         ('--dataset', broom.Mapper('--basedir',{
             'cfgroups1000':'cfgroups1000.json',
+            'cfsimplegroups1000a':'cfsimplegroups1000a.json',
             'enron':'ldc_split',
             'dredze':'1v0.json',
             },default='full_set',matchsubstrings=True).generator),
@@ -116,7 +125,7 @@ def jobs(first_experiment, results_dir, mem):
             'naivebayes-20':parabolic_points(150,60000,num_evalpoints),
             'newsgroups':parabolic_points(150,60000,num_evalpoints),
             'ng':parabolic_points(150,60000,num_evalpoints),
-            'cfgroups1000':parabolic_points(150,10000,num_evalpoints),
+            'groups1000':parabolic_points(150,10000,num_evalpoints),
             'dredze':parabolic_points(150,21000,num_evalpoints),
             'cade12':parabolic_points(150,200000,num_evalpoints),
             'enron':parabolic_points(150,14000,num_evalpoints),
@@ -137,7 +146,7 @@ def jobs(first_experiment, results_dir, mem):
         # annotations
         ('--annotation-strategy', broom.Mapper('--basedir',{
             'dredze':'real',
-            'cfgroups1000':'real',
+            'groups1000':'real',
             }, default='kdeep', matchsubstrings=True).generator),
         ('--annotator-accuracy', broom.Mapper('--annotation-strategy',{
             'real':None,
@@ -154,8 +163,12 @@ def jobs(first_experiment, results_dir, mem):
             'kdeep':3,
             }).generator),
         ('--num-annotator-clusters', broom.Mapper('--annotation-strategy',{
-            'real':(5,20,-1),
+            'real':(5,-1),
+            #'real':(5,20,-1),
             }, default=None).generator),
+        #('--cluster-method', broom.Mapper('--annotation-strategy',{
+        #    'real':('KM_MV','KM_GOLD'),
+        #    }, default=None).generator),
 
         # observed trusted labels
         ('--num-observed-labels',0),
@@ -175,27 +188,35 @@ def jobs(first_experiment, results_dir, mem):
         #('--labeling-strategy',['ubaseline','itemresp','momresp','multiresp','varitemresp','varmomresp','varmultiresp','rayktrunc','varrayk','cslda']), 
         #('--labeling-strategy','itemresp'), 
         #('--labeling-strategy',['cslda']), 
-        ('--labeling-strategy',['cslda','ubaseline','varmomresp','varitemresp','varrayk']), 
+        ('--labeling-strategy',['cslda','varitemresp','varmomresp']), 
+        #('--labeling-strategy',['cslda','varitemresp','varmomresp']), 
+        #('--labeling-strategy',['cslda','ubaseline','varmomresp','varitemresp','varrayk']), 
         #('--labeling-strategy',['ubaseline','varmomresp']), 
         #('--num-topics',('20','100','500','1000')),
-        ('--num-topics','100'),
+        #('--num-topics',('10','100')),
+        ('--num-topics',('20','100')),
         ('--training',broom.Mapper('--labeling-strategy',{
-            'cslda':'sample-all-1000',
+            'cslda':'sample-all-2000',
         },default='maximize-all').generator),
         ('--diagonalization-method',"GOLD"),
         ('--gold-instances-for-diagonalization',-1),
         #('--lambda',1),
         ('--training-percent', 85), 
-        ('--validation-percent', 10), 
-        ('--hyperparam-training', broom.Mapper('--labeling-strategy',{
-            'cslda': ['maximize-bgamma+cgamma-GRID-1-itemresp-acc-maximize-all'],
-            'momresp': ['maximize-bgamma+cgamma-GRID-1-itemresp-acc-maximize-all'],
-            'itemresp': ['maximize-bgamma+cgamma-GRID-1'],
-        },default='none',matchsubstrings=True).generator), 
+
+        ('--validation-percent', 0), 
+        #('--validation-percent', 10), 
+        #('--hyperparam-training', broom.Mapper('--labeling-strategy',{
+        #    'cslda': ['maximize-bgamma+cgamma-GRID-1-itemresp-acc-maximize-all'],
+        #    'momresp': ['maximize-bgamma+cgamma-GRID-1-itemresp-acc-maximize-all'],
+        #    'itemresp': ['maximize-bgamma+cgamma-GRID-1'],
+        #},default='none',matchsubstrings=True).generator), 
         #('--truncate-unannotated-data', broom.Mapper('--labeling-strategy',{
         #    'multiresp':('',None), # run multiresp with and without this option
         #    'momresp':('',None), # run multiresp with and without this option
         #    }, default=None).generator),
+
+        #('--inline-hyperparam-tuning', ('',None)),
+        ('--inline-hyperparam-tuning'),
 
         # weak priors
         ('--b-theta',broom.Mapper('--labeling-strategy',{
@@ -205,6 +226,7 @@ def jobs(first_experiment, results_dir, mem):
         ('--b-mu','0.1'),
         ('--c-mu','1'),
         ('--c-gamma','1'),
+        #('--eta-variance',(1,0.1)),
         ## weak gamma prior #1 (static)
         #('--b-gamma','0.1'),
         # weak gamma prior #2 (scale with num-class)
@@ -215,6 +237,7 @@ def jobs(first_experiment, results_dir, mem):
             'naivebayes-20':(1.+2.)/(20.+2.),
             'newsgroups':(1.+2.)/(20.+2.),
             'cfgroups1000':(1.+2.)/(20.+2.),
+            'cfsimplegroups1000a':(1.+2.)/(10.+2.),
             'ng':(1.+2.)/(20.+2.),
             'enron':(1.+2.)/(32.+2.), 
             'dredze':(1.+2.)/(2.+2.),
@@ -256,7 +279,8 @@ def jobs(first_experiment, results_dir, mem):
         #('--tabular-file',FileNamer(results_dir,'tab').generator),
 
         # positional args
-        inputfiles,
+        TopicsFileName(topics_dir).generator,
+        #inputfiles,
     )
 
     # report parameters 
@@ -286,10 +310,10 @@ if __name__ == "__main__":
     print '============================================'
     print '= first %d jobs' % headn
     print '============================================'
-    for i,job in enumerate(jobs(firstexperiment,outdir,"4g")):
+    for i,job in enumerate(jobs(firstexperiment,outdir,'topic_vectors',"4g")):
         if i<=headn:
             print 
             print job
-        total = i
+        total = i+1
     print '\ntotal jobs=%d' % total
 

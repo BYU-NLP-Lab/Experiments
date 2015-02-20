@@ -17,6 +17,7 @@ if __name__ == '__main__':
     parser.add_argument("--mem","-m",default="4g",help="How much memory to allocate each job jre?")
     parser.add_argument("--first-experiment","-f",default=101,help="Start running experiments from this number on")
     parser.add_argument("--results-dir","-r",required=True,help="Where should job results be stored?")
+    parser.add_argument("--topics-dir",default="topic_vectors",help="Where should the job look for pre-computed topic vectors in files named DATASET-numtopics?")
     args = parser.parse_args()
 
     # download dependencies
@@ -32,5 +33,5 @@ if __name__ == '__main__':
         pass
 
     # farm jobs out to clients
-    job_generator = multiann.jobs(args.first_experiment, results_dir, args.mem)
+    job_generator = multiann.jobs(args.first_experiment, results_dir, args.topics_dir, args.mem)
     jobfarm.farm_jobs(job_generator, args.hosts, args.pollint, args.logdir, args.test)
