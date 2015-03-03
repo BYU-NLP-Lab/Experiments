@@ -136,16 +136,8 @@ massageData <- function(dat){
   #   dat <- nameRows(dat,'multiresp_bin_s',    'multiresp','binary_classifier',FALSE,TRUE)
   #   dat <- nameRows(dat,'multiresp_bin','multiresp','binary_classifier',TRUE,TRUE)
 
-  # make 'algorithm' into factor (and re-order)
+  # make 'algorithm' into factor 
   dat$algorithm <- factor(dat$algorithm)
-#   dat$algorithm <- factor(dat$algorithm, levels=c(
-#     'cslda','cslda_grid',
-#     'itemresp_s','itemresp_s_grid','itemresp_s_bob','itemresp','itemresp_grid','itemresp_bob',
-#     'varitemresp','varitemresp_grid','varitemresp_bob',
-#     'varmomresp','momresp_s','momresp',
-#     'multiresp_sm','multiresp_s','multiresp_m','multiresp','varmultiresp',
-#     'varraykar','raykar_st','raykar',
-#     'baseline','invalid')) 
 
   # name num_annotators into a factor (so it can be used as a plotting facet)
   dat$num_annotators <- factor(dat$num_annotators)
@@ -175,9 +167,9 @@ massageData <- function(dat){
   return(dat[valid_rows,])
 }
 
-plotAlgorithms <- function(dat, yvarname, title, ymin=min(dat[[yvarname]]), ymax=max(dat[[yvarname]]), ylabel="Accuracy", xlabel="Number of annotated instances x %s",
-                           shapesize=1, xlim=NULL, divisor=1000, hideLegend=FALSE, facets="~corpus~num_annotators~annotator_accuracy"
-                           ){
+plotAlgorithms <- function(dat, yvarname, title, xvarname="num_documents_with_annotations", ymin=min(dat[[yvarname]]), ymax=max(dat[[yvarname]]), ylabel="Accuracy", xlabel="Number of annotated instances x %s",
+                           shapesize=1, xlim=NULL, divisor=1000, hide_legend=FALSE, algorithm_colors=NULL, algorithm_shapes=NULL, facets="~corpus~num_annotators~annotator_accuracy",
+                           other_ggplot_elements=NULL, xbreaks=NULL){
   # a modified colorblind-friendly pallette from http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
   
   # x tick label formatter
@@ -195,15 +187,18 @@ plotAlgorithms <- function(dat, yvarname, title, ymin=min(dat[[yvarname]]), ymax
 
   # what are the variables we should group by when calculating std dev?
   groupvars <- strsplit(facets,'~')[[1]][] # use those we are using for for facets
-  groupvars <- c(groupvars, "num_documents_with_annotations", "algorithm") # include the x axis and line identities (algorithm)
+  groupvars <- c(groupvars, xvarname, "algorithm") # include the x axis and line identities (algorithm)
   groupvars <- groupvars[lapply(groupvars,nchar)>0] # remove empty entries
   dfc <- summarySE(dat, measurevar=yvarname, groupvars=groupvars)
-# dfc <- summarySE(dat, measurevar=yvarname, groupvars=c("algorithm","num_documents_with_annotations","d","annotator_accuracy","corpus","diagonalization_method"))
   if (!is.null(divisor)){
-    dfc$num_documents_with_annotations <- dfc$num_documents_with_annotations/divisor
+    dfc[[xvarname]] <- dfc[[xvarname]]/divisor
+    if (!is.null(xbreaks)){
+      xbreaks <- xbreaks/divisor
+    }
   }
 
-  plt <- ggplot(dat=dfc, aes_string(x="num_documents_with_annotations", y=yvarname, color="algorithm", group="algorithm")) + 
+  # base plot
+  plt <- ggplot(dat=dfc, aes_string(x=xvarname, y=yvarname, color="algorithm", group="algorithm")) + 
     ggtitle(title) +
     geom_errorbar(aes_string(ymin=sprintf("%s-sd",yvarname), ymax=sprintf("%s+sd",yvarname))) +
     geom_line(size=0.8) +
@@ -213,29 +208,35 @@ plotAlgorithms <- function(dat, yvarname, title, ymin=min(dat[[yvarname]]), ymax
     xlab(sprintf(xlabel,format(divisor,big.mark=',',big.interval=3))) + 
     scale_x_continuous(labels=xformatter) +
     theme(plot.title = element_text(lineheight=1.8,face='bold')) 
-    #scale_colour_manual(values=c('Majority'="#619Cff", 'MomResp'="#F8766D",'MomResp+MF'="#F8766D", 'LogResp'="#00BA38",'LogResp+MF'="#00BA38", 'MomResp+Gibbs'="#777777",'LogResp+EM'="#777777")) +
-    #scale_shape_manual(values=c('Majority'=1, 'MomResp'=17,'MomResp+MF'=17, 'LogResp'=18,'LogResp+MF'=18,'LogResp+EM'=3, 'MomResp+Gibbs'=3)) 
-    #scale_colour_manual(values=c('baseline'="#555555", 'itemresp'="#009E73", 'momresp'="#56B4E9", 'multiresp'="#D5005E",'multiresp_m'="#5ED500", 'itemresp_s'="#0072B2", 'momresp_s'="#E69F00", 'multiresp_s'="#CC79A7", 'multiresp_sm'="#79CCA7")) +
-    #scale_shape_manual(values=c('baseline'=1, 'itemresp'=17, 'momresp'=18, 'multiresp'=3, 'multiresp_m'=4, 'itemresp_s'=5, 'momresp_s'=6, 'multiresp_s'=0, 'multiresp_sm'=0)) 
-
+  # line shapes
+  if (!is.null(algorithm_colors)){
+    plt <- plt + scale_colour_manual(values=algorithm_colors)
+  }
+  # x breaks
+  if (!is.null(xbreaks)){
+    plt <- plt + scale_x_continuous(labels=xformatter, breaks = xbreaks) 
+  }
+  # line colors
+  if (!is.null(algorithm_shapes)){
+    plt <- plt + scale_shape_manual(values=algorithm_shapes)
+  }
   # facets
   if (nchar(facets)>0){
     plt <- plt + facet_grid(facets)
   }
-
-  if (hideLegend){
+  # hide legend
+  if (hide_legend){
       plt <- plt + theme(legend.position='none') 
   }
-#   scale_shape_manual(values=c('baseline'=1, 'itemresp'='.', 'momresp'=',', 'multiresp'="x", 'itemresp_s'="*", 'momresp_s'=6, 'multiresp_s'="+"),guide=FALSE) 
-    
-#   palette=c("#555555", "#009E73", "#56B4E9", "#D55E00", "#0072B2", "#E69F00", "#CC79A7")
-#    scale_fill_manual(values=palette)
-#   if (!is.null(specialMultiannPointColor)){
-#     plt <- plt + geom_point(dat=dfc[which(dfc$algorithm=='multiresp'),],aes(color='black'),shape=4)
-#     plt <- plt + guides(color = guide_legend(override.aes = list(color=c('red','green','blue','orange'))));#=c(palette[1],palette[2],palette[3],'black'))))
-#   }
+  # xlim
   if (!is.null(xlim)){
     plt <- plt + scale_x_continuous(limits=xlim,labels=xformatter) 
+  }
+  # other
+  if (!is.null(other_ggplot_elements)){
+    for (el in other_ggplot_elements){
+      plt <- plt + el
+    }
   }
   return(plt)
 }
@@ -293,6 +294,34 @@ data = read.csv("2015-02-19-acl.csv")
 # implemented an optimization that ignores (analytically integrates out)
 # unannotated y's during inference. 
 data = read.csv("2015-02-20-acl.csv")
+# initialize with various strategies
+# (random,gold,varmomresp). Showed cslda is extremetly 
+# sensitive to initial conditions (and initializing with 
+# momresp leads to nearly identical results as with gold)
+data = read.csv("2015-02-23-acl.csv")
+# trying to initialize z in a better place by sampling 
+# it for awhile while holding y fixed at it varmomresp 
+# initial location. Then do joint inference both by 
+# sampling and by joint maximization (CCM).
+data = read.csv("2015-02-24-acl.csv")
+# fixed bug where eta (logistic regression parameter)
+# was not being updated with a good initialization 
+# location.
+data = read.csv("2015-02-24-aclbugfix.csv")
+# a last-ditch attempt to get good performance 
+# on crowdflower data by using 500 topics and 
+# 1000 z samples of initialization from varmomresp
+# It did NOT help.
+data = read.csv("2015-02-24-aclmanytopics.csv")
+# hopefully final gamut of algorithms
+data = read.csv("2015-02-25-acl.csv")
+# test showing (for paper) that hyper optimization reduces algorithm effect for itemresp
+data = read.csv("2015-02-25-acl-hypertuning.csv")
+# uses grr to test up to 20x labeled. This is so we can 
+# say something like "how much earlier did cslda achieve 95% 
+# accuracy before the nearest competitor (showcasing the 
+# high annotation information scenario).
+data = read.csv("2015-02-26-grr-extended.csv")
 
 #########################################################
 #             Prototyping
@@ -336,6 +365,7 @@ d = d[which(d$num_annotators==50 & d$annotator_accuracy=="FILE"),]
 d = d[which(d$num_annotators==20 & d$annotator_accuracy=="FILE"),]
 d = d[which(d$num_annotators==5 & d$annotator_accuracy=="FILE"),]
 d = d[which(d$algorithm=="cslda_s"),]
+d = d[which(d$algorithm=="cslda" & d$initialization_strategy=="baseline"),]
 d = d[which(d$algorithm=="varmomresp"),]
 d = d[which(d$algorithm=="varraykar"),]
 d = d[which(d$algorithm=="cslda_s" & d$corpus=="CFSIMPLEGROUPS" & d$num_annotators==5),]
@@ -344,7 +374,7 @@ d = d[which(d$algorithm=="cslda_s" & d$corpus=="CFSIMPLEGROUPS" & d$num_annotato
 #d = d[which(d$annotator_accuracy!='CONFLICT'),]
 #d = d[which(d$annotator_accuracy=='CONFLICT'),]
 
-plotAlgorithms(d,"labeled_acc","Inferred Label Accuracy",ymin=0,facets="~num_annotators~annotator_accuracy~corpus~eta_variance")
+plotAlgorithms(d,"labeled_acc","Inferred Label Accuracy",ymin=0,facets="~num_annotators~annotator_accuracy~corpus~eta_variance~num_topics")
 plotAlgorithms(d,"log_joint","Inferred Label Accuracy",ymin=min(d$log_joint),ymax=max(d$log_joint))
 plotAlgorithms(d,"btheta","BTheta")
 plotAlgorithms(d,"bgamma","BGamma",ymin=0)
@@ -363,6 +393,132 @@ plot(d$log_joint, d$labeled_acc)
 j = d[which(d$algorithm!='itemresp' & d$algorithm!='momresp'),]
 plotAlgorithms(j,"machacc_rmse","Machine RMSE",ymin=0)
 plotAlgorithms(j,"machacc_mat_rmse","Machine MAT RMSE")
+
+#########################################################
+#             ACL 2015 Submission
+#########################################################
+
+#scale_colour_manual(values=c('Majority'="#619Cff", 'MomResp'="#F8766D",'MomResp+MF'="#F8766D", 'LogResp'="#00BA38",'LogResp+MF'="#00BA38", 'MomResp+Gibbs'="#777777",'LogResp+EM'="#777777")) +
+#scale_shape_manual(values=c('Majority'=1, 'MomResp'=17,'MomResp+MF'=17, 'LogResp'=18,'LogResp+MF'=18,'LogResp+EM'=3, 'MomResp+Gibbs'=3)) 
+#scale_colour_manual(values=c('baseline'="#555555", 'itemresp'="#009E73", 'momresp'="#56B4E9", 'multiresp'="#D5005E",'multiresp_m'="#5ED500", 'itemresp_s'="#0072B2", 'momresp_s'="#E69F00", 'multiresp_s'="#CC79A7", 'multiresp_sm'="#79CCA7")) +
+#scale_shape_manual(values=c('baseline'=1, 'itemresp'=17, 'momresp'=18, 'multiresp'=3, 'multiresp_m'=4, 'itemresp_s'=5, 'momresp_s'=6, 'multiresp_s'=0, 'multiresp_sm'=0)) 
+
+
+######################## 7-deep algorithm comparison #######################
+data = read.csv("2015-02-26-acl.csv")
+
+# shared plotting params
+alg_colors=c('csLDA'='#00BEC4', 'csLDA-M'='#F563E3', 'Majority'="#000000", 'MomResp'="#B69E00", 'LogResp'="#609BFF", 'ItemResp'='#00B937')
+alg_shapes=c('csLDA'=5,         'csLDA-M'=3,         'Majority'=1,         'MomResp'=17,        'LogResp'=18,        'ItemResp'=6 ) 
+width = 15
+height = 9
+ymin = 0.4
+ymax = 1.0
+shapesize = 2
+# data
+mdata <- massageData(data);
+mdata$algorithm <- mapvalues(mdata$algorithm, from=c('baseline','cslda','cslda_s','varitemresp','varmomresp','varraykar'), to=c('Majority','csLDA-M','csLDA','ItemResp','MomResp','LogResp')) # rename
+mdata$algorithm <- factor(mdata$algorithm, levels=c('csLDA-M','csLDA','MomResp','LogResp','ItemResp','Majority')) # reorder
+plotty <- function(d,hide_legend=FALSE){
+  plotAlgorithms(d,"labeled_acc","",ymin=ymin,ymax=ymax,facets="~corpus", algorithm_colors=alg_colors, algorithm_shapes=alg_shapes, shapesize=shapesize,
+                 hide_legend=hide_legend)
+}
+# Newsgroups
+plotty(mdata[which(mdata$corpus=="NEWSGROUPS"),])
+ggsave("../images/newsgroups.eps",width=width,height=height,units='cm')
+# Cade12
+plotty(mdata[which(mdata$corpus=="CADE12"),], hide_legend=TRUE)
+ggsave("../images/cade12.eps",width=width,height=height,units='cm')
+# Enron
+plotty(mdata[which(mdata$corpus=="ENRON"),], hide_legend=TRUE)
+ggsave("../images/enron.eps",width=width,height=height,units='cm')
+# R8
+plotty(mdata[which(mdata$corpus=="R8"),], hide_legend=TRUE)
+ggsave("../images/r8.eps",width=width,height=height,units='cm')
+# R52
+plotty(mdata[which(mdata$corpus=="R52"),], hide_legend=TRUE)
+ggsave("../images/r52.eps",width=width,height=height,units='cm')
+# Webkb
+plotty(mdata[which(mdata$corpus=="WEBKB"),], hide_legend=TRUE)
+ggsave("../images/webkb.eps",width=width,height=height,units='cm')
+
+
+######################## testing the hyperparam optimization hypothesis #######################
+data = read.csv("2015-02-26-hypers.csv")
+# shared plotting params
+alg_colors=c('ICM'='#777777', 'Gibbs'='#555555', 'Var'="#619Cff")
+alg_shapes=c('ICM'=5,         'Gibbs-M'=3,       'Var'=1) 
+width = 10
+height = 6
+ymin = 0.2
+ymax = 0.8
+shapesize = 2
+#### without hyper optimization
+mdata <- massageData(data); d <- mdata
+# data
+d <- d[which(d$inline_hyperparam_tuning=="false"),]
+d <- d[which(d$algorithm=="itemresp" | d$algorithm=="varitemresp" | d$algorithm=="itemresp_s"),]
+d$algorithm <- mapvalues(d$algorithm, from=c('itemresp','itemresp_s','varitemresp','itemresp_grid','itemresp_s_grid','varitemresp_grid'), to=c('ICM','Gibbs','Var','ICM','Gibbs','Var')) # rename
+d$algorithm <- factor(d$algorithm, levels=c('Gibbs','Var','ICM')) # reorder
+# plot
+plotAlgorithms(d,"labeled_acc","",ymin=ymin,ymax=ymax,facets="~corpus",shapesize=shapesize)
+ggsave("../images/without-hypers.eps",width=width,height=height,units='cm')
+
+#### with hyper optimization
+mdata <- massageData(data); d <- mdata
+# data
+d <- d[which(d$inline_hyperparam_tuning=="false"),]
+d <- d[which(d$algorithm=="itemresp_grid" | d$algorithm=="varitemresp_grid" | d$algorithm=="itemresp_s_grid"),]
+d$algorithm <- mapvalues(d$algorithm, from=c('itemresp','itemresp_s','varitemresp','itemresp_grid','itemresp_s_grid','varitemresp_grid'), to=c('ICM','Gibbs','Var','ICM','Gibbs','Var')) # rename
+d$algorithm <- factor(d$algorithm, levels=c('Gibbs','Var','ICM')) # reorder
+# plot
+plotAlgorithms(d,"labeled_acc","",ymin=ymin,ymax=ymax,facets="~corpus",shapesize=shapesize)
+ggsave("../images/with-hypers.eps",width=width,height=height,units='cm')
+
+# # with hyper tuning (NOT VALID!!! Minka updates NOT IMPLEMENTED for Itemresp (only varitemresp))
+# mdata <- massageData(data); d <- mdata
+# d <- d[which(d$inline_hyperparam_tuning=="true"),]
+# d <- d[which(d$algorithm=="itemresp" | d$algorithm=="varitemresp" | d$algorithm=="itemresp_s"),]
+# plotAlgorithms(d,"labeled_acc","With Fixed-Point Hyperparameter Tuning",ymin=0,facets="~corpus")
+
+############################ charting extended annotation ranges with grr #############################
+data = read.csv("2015-02-26-grr-extended.csv")
+data <- data[which(data$annotator_accuracy=="CFBETA"),] # ignore FILE newsgroups results
+# shared plotting params
+alg_colors=c('csLDA'='#00BEC4', 'csLDA-M'='#F563E3', 'Majority'="#000000", 'MomResp'="#B69E00", 'LogResp'="#609BFF", 'ItemResp'='#00B937')
+alg_shapes=c('csLDA'=5,         'csLDA-M'=3,         'Majority'=1,         'MomResp'=17,        'LogResp'=18,        'ItemResp'=6 ) 
+width = 15
+height = 8
+ymin = 0.4
+ymax = 1.0
+shapesize = 2
+# data
+mdata <- massageData(data);
+mdata$algorithm <- mapvalues(mdata$algorithm, from=c('baseline','cslda','cslda_s','varitemresp','varmomresp','varraykar'), to=c('Majority','csLDA-M','csLDA','ItemResp','MomResp','LogResp')) # rename
+mdata$algorithm <- factor(mdata$algorithm, levels=c('csLDA-M','csLDA','MomResp','LogResp','ItemResp','Majority')) # reorder
+plotty <- function(d,xticksize){
+  plotAlgorithms(d,"labeled_acc","",ymin=ymin,ymax=ymax,facets="~corpus", algorithm_colors=alg_colors, algorithm_shapes=alg_shapes, shapesize=shapesize, 
+      xvarname="num_annotations", xbreaks = round(seq(min(d$num_annotations), max(d$num_annotations), by = xticksize),1),
+      other_ggplot_elements=c(
+        geom_hline(aes(yintercept=0.95))
+#         scale_x_continuous(breaks = )
+      )
+  )
+}
+# Cade12
+plotty(mdata[which(mdata$corpus=="CADE12"),], 20000)
+plotty(mdata[which(mdata$corpus=="CADE12" & mdata$algorithm=="csLDA"),], 20000) # csLDA gets buried in the previous graph
+# Newsgroups
+plotty(mdata[which(mdata$corpus=="NEWSGROUPS"),], 10000)
+# Enron
+plotty(mdata[which(mdata$corpus=="ENRON"),], 2000)
+# R52
+plotty(mdata[which(mdata$corpus=="R52"),], 3000)
+# R8
+plotty(mdata[which(mdata$corpus=="R8"),], 3000)
+# Webkb
+plotty(mdata[which(mdata$corpus=="WEBKB"),], 2000)
+
 #########################################################
 #             NIPS 2014 workshop Poster
 #########################################################

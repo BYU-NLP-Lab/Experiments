@@ -6,6 +6,26 @@ import sys
 import glob
 import broom # custom library from ~plf1/git/utils/broom
 
+
+data_size = {
+    'newsgroups':20000,
+    'cade12':40000,
+    'enron':5000,
+    'r8':8000,
+    'r52':10000,
+    'webkb':5000,
+}
+num_classes = {
+    'newsgroups':20,
+    'cade12':12,
+    'enron':32,
+    'dredze':2,
+    'r8':8,
+    'r52':52,
+    'webkb':4
+}
+depth = 7
+
 ######################################################
 #                   Helper Functions
 #####################################################
@@ -42,7 +62,6 @@ class FileNamer():
         self.directory=directory
         self.suffix=suffix
         self.prevnames = {}
-        #self.prevnames = set()
     def generator(self,keys,state):
         name = "{dr}/{name}-{sfx}.csv".format(dr=self.directory,name=jobname(keys,state),sfx=self.suffix)
         if name in self.prevnames:
@@ -75,8 +94,8 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
     java = "java -Xmx{mem} -cp {classpath} {main}".format(mem=mem, classpath=':'.join(classpath), main=main)
     javacommand = 'cd {cwd} && {java}'.format(cwd=os.getcwd(), java=java)
 
-    num_evalpoints = 5
-    repeats = 1
+    num_evalpoints = 10
+    repeats = 3
     chains = 1 # TODO: consider more for sampling runs
 
     # sweep parameters
@@ -92,13 +111,13 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
         ('--basedir',(
             #'data/naivebayes-20',
             #'data/multiresp-2.tgz',
-            'data/cfsimplegroups1000a',
+            #'data/cfsimplegroups1000a',
             'data/newsgroups',
-            'data/cfgroups1000',
+            #'data/cfgroups1000',
             #'data/dredze/derived',
             #'data/enron',
             #'data/r8',
-            'data/webkb',
+            #'data/webkb',
             #'data/cade12',
             #'data/r52',
             )),
@@ -122,16 +141,16 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             'dredze':'1v0.json',
             },default='full_set',matchsubstrings=True).generator),
         ('--eval-point', broom.Mapper('--basedir',{
-            'naivebayes-20':parabolic_points(150,60000,num_evalpoints),
-            'newsgroups':parabolic_points(150,60000,num_evalpoints),
-            'ng':parabolic_points(150,60000,num_evalpoints),
+            'naivebayes-20':parabolic_points(150,data_size['newsgroups']*depth,num_evalpoints),
+            'newsgroups':parabolic_points(150,data_size['newsgroups']*depth,num_evalpoints),
+            'ng':parabolic_points(150,data_size['newsgroups']*depth,num_evalpoints),
             'groups1000':parabolic_points(150,10000,num_evalpoints),
             'dredze':parabolic_points(150,21000,num_evalpoints),
-            'cade12':parabolic_points(150,200000,num_evalpoints),
-            'enron':parabolic_points(150,14000,num_evalpoints),
-            'r8':parabolic_points(150,22000,num_evalpoints),
-            'r52':parabolic_points(150,25000,num_evalpoints),
-            'webkb':parabolic_points(150,12000,num_evalpoints),
+            'cade12':parabolic_points(150,data_size['cade12']*depth,num_evalpoints),
+            'enron':parabolic_points(150,data_size['enron']*depth,num_evalpoints),
+            'r8':parabolic_points(150,data_size['r8']*depth,num_evalpoints),
+            'r52':parabolic_points(150,data_size['r52']*depth,num_evalpoints),
+            'webkb':parabolic_points(150,data_size['webkb']*depth,num_evalpoints),
             }, matchsubstrings=True).generator),
         ('--feature-normalization-constant',broom.Mapper('--basedir',{
             'dredze':10,
@@ -147,25 +166,28 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
         ('--annotation-strategy', broom.Mapper('--basedir',{
             'dredze':'real',
             'groups1000':'real',
+            #}, default='grr', matchsubstrings=True).generator),
             }, default='kdeep', matchsubstrings=True).generator),
-        ('--annotator-accuracy', broom.Mapper('--annotation-strategy',{
-            'real':None,
-            'kdeep':"FILE",
+        ('--annotator-accuracy', broom.Mapper('--basedir',{
+            #'newsgroups':"FILE",
+            'groups1000':None,
+            'dredze':None,
             #'kdeep':("FILE","LOW","EXPERT","CONFLICT"),
             #'kdeep':("HIGH","MED","LOW","CONFLICT"),
-            }).generator),
+            }, default=("CFBETA"), matchsubstrings=True).generator),
         ('--annotator-file', broom.Mapper('--annotator-accuracy',{
-            'FILE':("annotators/all","annotators/kmeans-5","annotators/kmeans-20"),
+            'FILE':"annotators/all",
+            #'FILE':("annotators/all","annotators/kmeans-5","annotators/kmeans-20"),
             #'FILE':("annotators/all","annotators/kmeans-5","annotators/kmeans-20","annotators/kmeans-50"),
             }, default=None).generator),
         ('-k', broom.Mapper('--annotation-strategy',{
             'real':None,
-            'kdeep':3,
-            }).generator),
-        ('--num-annotator-clusters', broom.Mapper('--annotation-strategy',{
-            'real':(5,-1),
-            #'real':(5,20,-1),
-            }, default=None).generator),
+            #}, default=1).generator),
+            }, default=depth).generator),
+        #('--num-annotator-clusters', broom.Mapper('--annotation-strategy',{
+        #    'real':-1,
+        #    #'real':(5,20,-1),
+        #    }, default=None).generator),
         #('--cluster-method', broom.Mapper('--annotation-strategy',{
         #    'real':('KM_MV','KM_GOLD'),
         #    }, default=None).generator),
@@ -177,9 +199,7 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
         #    'cfgroups1000':None
         #}, default=10, matchsubstrings=True).generator),
 
-        # inference
-        #('--labeling-strategy',['momresp']), 
-        #('--labeling-strategy',['rayktrunc','varrayk']), 
+        # inference #('--labeling-strategy',['momresp']), #('--labeling-strategy',['rayktrunc','varrayk']), 
         #('--labeling-strategy',['rayktrunc','varrayk']), 
         #('--labeling-strategy',['varmomresp','varrayk']), 
         #('--labeling-strategy',['ubaseline','varmomresp','varrayk']), 
@@ -188,35 +208,49 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
         #('--labeling-strategy',['ubaseline','itemresp','momresp','multiresp','varitemresp','varmomresp','varmultiresp','rayktrunc','varrayk','cslda']), 
         #('--labeling-strategy','itemresp'), 
         #('--labeling-strategy',['cslda']), 
-        ('--labeling-strategy',['cslda','varitemresp','varmomresp']), 
+        #('--labeling-strategy',['ubaseline']), 
+        #('--labeling-strategy',['ubaseline','cslda','varitemresp','varmomresp']), 
         #('--labeling-strategy',['cslda','varitemresp','varmomresp']), 
-        #('--labeling-strategy',['cslda','ubaseline','varmomresp','varitemresp','varrayk']), 
+        #('--labeling-strategy',['itemresp','varitemresp']), 
+        ('--labeling-strategy',['ubaseline','cslda','varmomresp','varitemresp','varrayk']), 
         #('--labeling-strategy',['ubaseline','varmomresp']), 
-        #('--num-topics',('20','100','500','1000')),
-        #('--num-topics',('10','100')),
-        ('--num-topics',('20','100')),
+        ('--initialization-strategy',broom.Mapper('--labeling-strategy',{
+            #'cslda':('baseline','varmomresp'), 
+            'cslda':'varmomresp', 
+        },default=('baseline')).generator), #('--num-topics',('20','100','500','1000')),
+        #('--num-topics',500),
+        ('--num-topics',broom.Mapper('--basedir',{
+            'naivebayes-20': int(round(1.5*num_classes['newsgroups'])),
+            'newsgroups': int(round(1.5*num_classes['newsgroups'])),
+            'ng': int(round(1.5*num_classes['newsgroups'])),
+            'groups1000': int(round(1.5*num_classes['newsgroups'])),
+            'dredze': int(round(1.5*num_classes['dredze'])),
+            'cade12': int(round(1.5*num_classes['cade12'])),
+            'enron': int(round(1.5*num_classes['enron'])),
+            'r8': int(round(1.5*num_classes['r8'])),
+            'r52': int(round(1.5*num_classes['r52'])),
+            'webkb': int(round(1.5*num_classes['webkb'])),
+        }, matchsubstrings=True).generator),
         ('--training',broom.Mapper('--labeling-strategy',{
-            'cslda':'sample-all-2000',
+            'cslda':('sample-z-500:sample-all-1000','sample-z-500:maximize-all'),
+            'itemresp':('sample-all-500','maximize-all'),
+            #'cslda':('sample-z-500:sample-all-1000','sample-z-500:maximize-all'),
         },default='maximize-all').generator),
         ('--diagonalization-method',"GOLD"),
         ('--gold-instances-for-diagonalization',-1),
         #('--lambda',1),
         ('--training-percent', 85), 
 
+        #('--inline-hyperparam-tuning', ('',None)),
+        ('--inline-hyperparam-tuning'),
+
         ('--validation-percent', 0), 
         #('--validation-percent', 10), 
         #('--hyperparam-training', broom.Mapper('--labeling-strategy',{
-        #    'cslda': ['maximize-bgamma+cgamma-GRID-1-itemresp-acc-maximize-all'],
-        #    'momresp': ['maximize-bgamma+cgamma-GRID-1-itemresp-acc-maximize-all'],
-        #    'itemresp': ['maximize-bgamma+cgamma-GRID-1'],
+        #    #'cslda': ['maximize-bgamma+cgamma-GRID-1-itemresp-acc-maximize-all'],
+        #    #'momresp': ['maximize-bgamma+cgamma-GRID-1-itemresp-acc-maximize-all'],
+        #    'itemresp': ['maximize-btheta+bgamma+cgamma-GRID-1'],
         #},default='none',matchsubstrings=True).generator), 
-        #('--truncate-unannotated-data', broom.Mapper('--labeling-strategy',{
-        #    'multiresp':('',None), # run multiresp with and without this option
-        #    'momresp':('',None), # run multiresp with and without this option
-        #    }, default=None).generator),
-
-        #('--inline-hyperparam-tuning', ('',None)),
-        ('--inline-hyperparam-tuning'),
 
         # weak priors
         ('--b-theta',broom.Mapper('--labeling-strategy',{
@@ -270,7 +304,7 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
         #('--algorithm-seed', broom.Range(1,1+chains).generator), # chains
         ('--algorithm-seed', broom.Mapper('--annotation-strategy',{
             # for real data, all randomness must come from algorithm
-            'real': range(1,1+chains+repeats)
+            'real': range(1,1+(chains*repeats))
             }, matchsubstrings=True, default=range(1,1+chains)).generator),
         # output files
         ('--results-file',FileNamer(results_dir,'results').generator),
@@ -297,10 +331,11 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
 
 if __name__ == "__main__":
     import os
+    import sys
     headn = 500
     firstexperiment = 101
 
-    outdir = '/tmp/bogus'
+    outdir = '/tmp/bogus' if len(sys.argv)<=1 else sys.argv[1]
     #outdir = '/tmp/multiannresults'
     try:
         os.makedirs(outdir)
@@ -310,6 +345,7 @@ if __name__ == "__main__":
     print '============================================'
     print '= first %d jobs' % headn
     print '============================================'
+    total = 0
     for i,job in enumerate(jobs(firstexperiment,outdir,'topic_vectors',"4g")):
         if i<=headn:
             print 
