@@ -406,6 +406,7 @@ plotAlgorithms(j,"machacc_mat_rmse","Machine MAT RMSE")
 
 ######################## 7-deep algorithm comparison #######################
 data = read.csv("2015-02-26-acl.csv")
+data <- data[which(data$annotator_accuracy=="CFBETA"),] # ignore FILE newsgroups results
 
 # shared plotting params
 alg_colors=c('csLDA'='#00BEC4', 'csLDA-M'='#F563E3', 'Majority'="#000000", 'MomResp'="#B69E00", 'LogResp'="#609BFF", 'ItemResp'='#00B937')
