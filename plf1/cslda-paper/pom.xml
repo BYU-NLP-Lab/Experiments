@@ -5,7 +5,7 @@
 
   <!-- these don't really matter because we won't be creating shared artifacts with this project -->
 	<artifactId>experiment</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.1-SNAPSHOT</version>
 	<groupId>edu.byu.nlp</groupId>
 
 	<dependencies>
@@ -13,7 +13,7 @@
 			<groupId>edu.byu.nlp</groupId>
 			<artifactId>statnlp-activelearning</artifactId>
 			<!-- get this dependency version right for paper archives! It should NOT be a snapshot! -->
-			<version>0.0.1-SNAPSHOT</version> 
+			<version>1.1-SNAPSHOT</version> 
 		</dependency>
     <!-- logging -->
     <dependency>

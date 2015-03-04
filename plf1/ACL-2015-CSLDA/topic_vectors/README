@@ -1,7 +1,0 @@
-This folder contains pre-computed unsupervised topic vectors for each dataset. 
-They are read in as an initalization point for cslda.
-
-To create cached topics in the current directory for each dataset:
-./ssh_submit.py -n potatoes -r . -o /tmp/outtopics
-
-WARNING: these topic vectors are not usable by the code because they depend on instances being ordered in a way that's determined by --data-seed. Either we need to run one per data-seed or else store them as a map from data source to topic vector.
