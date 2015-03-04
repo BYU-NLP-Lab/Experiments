@@ -94,8 +94,8 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
     java = "java -Xmx{mem} -cp {classpath} {main}".format(mem=mem, classpath=':'.join(classpath), main=main)
     javacommand = 'cd {cwd} && {java}'.format(cwd=os.getcwd(), java=java)
 
-    num_evalpoints = 10
-    repeats = 3
+    num_evalpoints = 5
+    repeats = 1
     chains = 1 # TODO: consider more for sampling runs
 
     # sweep parameters
@@ -166,10 +166,9 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
         ('--annotation-strategy', broom.Mapper('--basedir',{
             'dredze':'real',
             'groups1000':'real',
-            #}, default='grr', matchsubstrings=True).generator),
             }, default='kdeep', matchsubstrings=True).generator),
         ('--annotator-accuracy', broom.Mapper('--basedir',{
-            #'newsgroups':"FILE",
+            'newsgroups':"FILE",
             'groups1000':None,
             'dredze':None,
             #'kdeep':("FILE","LOW","EXPERT","CONFLICT"),
@@ -182,8 +181,8 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             }, default=None).generator),
         ('-k', broom.Mapper('--annotation-strategy',{
             'real':None,
-            #}, default=1).generator),
-            }, default=depth).generator),
+            'kdeep':depth,
+            }).generator),
         #('--num-annotator-clusters', broom.Mapper('--annotation-strategy',{
         #    'real':-1,
         #    #'real':(5,20,-1),
@@ -211,8 +210,8 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
         #('--labeling-strategy',['ubaseline']), 
         #('--labeling-strategy',['ubaseline','cslda','varitemresp','varmomresp']), 
         #('--labeling-strategy',['cslda','varitemresp','varmomresp']), 
-        #('--labeling-strategy',['itemresp','varitemresp']), 
-        ('--labeling-strategy',['ubaseline','cslda','varmomresp','varitemresp','varrayk']), 
+        ('--labeling-strategy',['itemresp','varitemresp']), 
+        #('--labeling-strategy',['ubaseline','cslda','varmomresp','varitemresp','varrayk']), 
         #('--labeling-strategy',['ubaseline','varmomresp']), 
         ('--initialization-strategy',broom.Mapper('--labeling-strategy',{
             #'cslda':('baseline','varmomresp'), 
@@ -233,7 +232,7 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
         }, matchsubstrings=True).generator),
         ('--training',broom.Mapper('--labeling-strategy',{
             'cslda':('sample-z-500:sample-all-1000','sample-z-500:maximize-all'),
-            'itemresp':('sample-all-500','maximize-all'),
+            'itemresp':('sample-all-1000','maximize-all'),
             #'cslda':('sample-z-500:sample-all-1000','sample-z-500:maximize-all'),
         },default='maximize-all').generator),
         ('--diagonalization-method',"GOLD"),
@@ -241,18 +240,20 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
         #('--lambda',1),
         ('--training-percent', 85), 
 
-        #('--inline-hyperparam-tuning', ('',None)),
-        ('--inline-hyperparam-tuning'),
+        ('--inline-hyperparam-tuning', ('',None)),
+        #('--inline-hyperparam-tuning'),
 
-        ('--vary-annotator-rates',('',None)),
-
-        ('--validation-percent', 0), 
+        #('--validation-percent', 0), 
         #('--validation-percent', 10), 
         #('--hyperparam-training', broom.Mapper('--labeling-strategy',{
         #    #'cslda': ['maximize-bgamma+cgamma-GRID-1-itemresp-acc-maximize-all'],
         #    #'momresp': ['maximize-bgamma+cgamma-GRID-1-itemresp-acc-maximize-all'],
-        #    'itemresp': ['maximize-btheta+bgamma+cgamma-GRID-1'],
+        #    'itemresp': ['maximize-btheta-bgamma+cgamma-GRID-1'],
         #},default='none',matchsubstrings=True).generator), 
+        #('--truncate-unannotated-data', broom.Mapper('--labeling-strategy',{
+        #    'multiresp':('',None), # run multiresp with and without this option
+        #    'momresp':('',None), # run multiresp with and without this option
+        #    }, default=None).generator),
 
         # weak priors
         ('--b-theta',broom.Mapper('--labeling-strategy',{
@@ -347,7 +348,6 @@ if __name__ == "__main__":
     print '============================================'
     print '= first %d jobs' % headn
     print '============================================'
-    total = 0
     for i,job in enumerate(jobs(firstexperiment,outdir,'topic_vectors',"4g")):
         if i<=headn:
             print 

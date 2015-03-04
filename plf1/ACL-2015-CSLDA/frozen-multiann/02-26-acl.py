@@ -94,8 +94,8 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
     java = "java -Xmx{mem} -cp {classpath} {main}".format(mem=mem, classpath=':'.join(classpath), main=main)
     javacommand = 'cd {cwd} && {java}'.format(cwd=os.getcwd(), java=java)
 
-    num_evalpoints = 10
-    repeats = 3
+    num_evalpoints = 5
+    repeats = 5
     chains = 1 # TODO: consider more for sampling runs
 
     # sweep parameters
@@ -115,11 +115,11 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             'data/newsgroups',
             #'data/cfgroups1000',
             #'data/dredze/derived',
-            #'data/enron',
-            #'data/r8',
-            #'data/webkb',
-            #'data/cade12',
-            #'data/r52',
+            'data/enron',
+            'data/r8',
+            'data/webkb',
+            'data/cade12',
+            'data/r52',
             )),
         ('--dataset-type', broom.Mapper('--basedir',{
             'naivebayes-20':'NB20',
@@ -166,10 +166,9 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
         ('--annotation-strategy', broom.Mapper('--basedir',{
             'dredze':'real',
             'groups1000':'real',
-            #}, default='grr', matchsubstrings=True).generator),
             }, default='kdeep', matchsubstrings=True).generator),
         ('--annotator-accuracy', broom.Mapper('--basedir',{
-            #'newsgroups':"FILE",
+            'newsgroups':"FILE",
             'groups1000':None,
             'dredze':None,
             #'kdeep':("FILE","LOW","EXPERT","CONFLICT"),
@@ -182,8 +181,8 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             }, default=None).generator),
         ('-k', broom.Mapper('--annotation-strategy',{
             'real':None,
-            #}, default=1).generator),
-            }, default=depth).generator),
+            'kdeep':depth,
+            }).generator),
         #('--num-annotator-clusters', broom.Mapper('--annotation-strategy',{
         #    'real':-1,
         #    #'real':(5,20,-1),
@@ -243,8 +242,6 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
 
         #('--inline-hyperparam-tuning', ('',None)),
         ('--inline-hyperparam-tuning'),
-
-        ('--vary-annotator-rates',('',None)),
 
         ('--validation-percent', 0), 
         #('--validation-percent', 10), 

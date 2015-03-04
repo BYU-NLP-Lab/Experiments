@@ -24,7 +24,7 @@ num_classes = {
     'r52':52,
     'webkb':4
 }
-depth = 7
+depth = 20
 
 ######################################################
 #                   Helper Functions
@@ -166,8 +166,8 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
         ('--annotation-strategy', broom.Mapper('--basedir',{
             'dredze':'real',
             'groups1000':'real',
-            #}, default='grr', matchsubstrings=True).generator),
-            }, default='kdeep', matchsubstrings=True).generator),
+            }, default='grr', matchsubstrings=True).generator),
+            #}, default='kdeep', matchsubstrings=True).generator),
         ('--annotator-accuracy', broom.Mapper('--basedir',{
             #'newsgroups':"FILE",
             'groups1000':None,
@@ -182,8 +182,8 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             }, default=None).generator),
         ('-k', broom.Mapper('--annotation-strategy',{
             'real':None,
-            #}, default=1).generator),
-            }, default=depth).generator),
+            }, default=1).generator),
+            #}, default=depth).generator),
         #('--num-annotator-clusters', broom.Mapper('--annotation-strategy',{
         #    'real':-1,
         #    #'real':(5,20,-1),
@@ -243,8 +243,6 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
 
         #('--inline-hyperparam-tuning', ('',None)),
         ('--inline-hyperparam-tuning'),
-
-        ('--vary-annotator-rates',('',None)),
 
         ('--validation-percent', 0), 
         #('--validation-percent', 10), 
