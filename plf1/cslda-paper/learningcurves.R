@@ -250,69 +250,6 @@ setwd('/aml/home/plf1/git/Experiments/plf1/cslda-paper/csv')
 # stop execution --- proceed manually
 stop()
 
-data = read.csv("2014-08-08.csv")
-data = read.csv("2014-10-07-partial-nips.csv")
-data = read.csv("2014-10-08-partial-nips.csv")
-data = read.csv("2015-01-16-after-refactoring.csv")
-data = read.csv("2015-01-22-hyperparameter-tuning.csv")
-data = read.csv("2015-01-23-hyperparam-tuning-wrtla.csv")
-data = read.csv("2015-01-27-icml.csv")
-data = read.csv("2015-01-30-optimized-sampler-cslda.csv")
-data = read.csv("2015-01-31-optimized-sampler-cslda.csv")
-data = read.csv("2015-02-02-icml.csv")
-# pretty comprehensive gamut of experiments shows cslda
-# doing well on most things, badly on crowdflower newsgroups data.
-data = read.csv("2015-02-03-icml-withoutreplacement.csv")
-# experiments with multiple values of k (num topics)
-# I forgot to add num_topics as a column first, so they can't 
-# be teached apart, but the variance is small enough that it 
-# looks like num_topics doesn't explain cslda bad behavior on 
-# crowdflower newsgroups data
-data = read.csv("2015-02-04-topics.csv")
-# these results were summarized in a Feb 5th email to ringger/seppi/jordan 
-# showing that cslda is more sensitive to annotator sparsity (having many annotators)
-# than other algorithms. Suggested annotator clustering as a way forward.
-data = read.csv("2015-02-05-fitted-annotators.csv")
-# these results were summarized in Feb 11th email to ringger/seppi/jordan
-# showing that clustering annotators helps on simulated data but not 
-# on real data
-data = read.csv("2015-02-10-acl.csv")
-# implemented bgamma updates
-# making several comparisons:
-# with vs without inline hyper tuning
-# MV annotator clustering vs GOLD annotator clustering
-data = read.csv("2015-02-17-acl.csv")
-# added more headers and simplified (only MV clustering and hyper tuning)
-# added simplified newsgroups data where classes are clustered into 10 classes
-data = read.csv("2015-02-18-acl.csv")
-# tried varying the eta-variance (1,0.1) to 
-# see if this had any effect on increasing the effect of data
-# results indicate that 0.1 nearly always hurts (tends 
-# to bring results slightly more in line with itemresp, 
-# discounting data))
-data = read.csv("2015-02-19-acl.csv")
-# implemented an optimization that ignores (analytically integrates out)
-# unannotated y's during inference. 
-data = read.csv("2015-02-20-acl.csv")
-# initialize with various strategies
-# (random,gold,varmomresp). Showed cslda is extremetly 
-# sensitive to initial conditions (and initializing with 
-# momresp leads to nearly identical results as with gold)
-data = read.csv("2015-02-23-acl.csv")
-# trying to initialize z in a better place by sampling 
-# it for awhile while holding y fixed at it varmomresp 
-# initial location. Then do joint inference both by 
-# sampling and by joint maximization (CCM).
-data = read.csv("2015-02-24-acl.csv")
-# fixed bug where eta (logistic regression parameter)
-# was not being updated with a good initialization 
-# location.
-data = read.csv("2015-02-24-aclbugfix.csv")
-# a last-ditch attempt to get good performance 
-# on crowdflower data by using 500 topics and 
-# 1000 z samples of initialization from varmomresp
-# It did NOT help.
-data = read.csv("2015-02-24-aclmanytopics.csv")
 # hopefully final gamut of algorithms
 data = read.csv("2015-02-25-acl.csv")
 # test showing (for paper) that hyper optimization reduces algorithm effect for itemresp
@@ -322,6 +259,8 @@ data = read.csv("2015-02-25-acl-hypertuning.csv")
 # accuracy before the nearest competitor (showcasing the 
 # high annotation information scenario).
 data = read.csv("2015-02-26-grr-extended.csv")
+# newsgroups experiments with empirical annotator contribution rates
+data = read.csv("2015-03-04.csv")
 
 #########################################################
 #             Prototyping
@@ -342,52 +281,21 @@ d = mdata[which(mdata$corpus=="CFGROUPS1000"),]
 d = mdata[which(mdata$corpus=="CFSIMPLEGROUPS"),]
 d = mdata[which(mdata$corpus=="CFSIMPLEGROUPS" | mdata$corpus=="CFGROUPS1000"),]
 
-d = d[which(d$diagonalization_method=="GOLD"),]
-d = d[which(d$num_annotations<1000),]
-d = d[which(d$algorithm=="itemresp" | d$algorithm=="varitemresp" | d$algorithm=="itemresp_s" ),]
-d = d[which(d$algorithm=="itemresp_bob" | d$algorithm=="varitemresp_bob" | d$algorithm=="itemresp_s_bob" ),]
-alg <- "cslda_s"
-d = d[which(d$algorithm=="baseline" | d$algorithm==alg | d$algorithm==paste(alg,'bob',sep='_') | d$algorithm==paste(alg,'grid',sep='_') ),]
-d = d[which(d$algorithm==alg | d$algorithm==paste(alg,'bob',sep='_') | d$algorithm==paste(alg,'grid',sep='_') ),]
-d = d[which(d$algorithm==alg | d$algorithm==paste(alg,'grid',sep='_') ),]
-d = d[which(d$algorithm==alg | d$algorithm==paste(alg,'bob',sep='_') ),]
-d = d[which(d$algorithm==paste(alg,'bob',sep='_') ),]
-d = d[which(d$algorithm==alg),]
-e = d[which(d$algorithm=="itemresp_grid"),]
-f = d[which(d$algorithm=="itemresp_bob"),]
-f = d[which(d$algorithm=="itemresp_s"),]
-d = d[which(d$algorithm=="itemresp" | d$algorithm=="varitemresp" | d$algorithm=="itemresp_s"),]
-d = d[which(d$algorithm=="itemresp_grid" | d$algorithm=="varitemresp_grid" | d$algorithm=="itemresp_s_grid"),]
-d = d[which(d$algorithm=="itemresp_bob" | d$algorithm=="varitemresp_bob" | d$algorithm=="itemresp_s_bob"),]
-d = d[which(d$num_annotators==5 & d$annotator_accuracy=="LOW"),]
-d = d[which(d$num_annotators==136 & d$annotator_accuracy=="FILE"),]
-d = d[which(d$num_annotators==50 & d$annotator_accuracy=="FILE"),]
-d = d[which(d$num_annotators==20 & d$annotator_accuracy=="FILE"),]
-d = d[which(d$num_annotators==5 & d$annotator_accuracy=="FILE"),]
-d = d[which(d$algorithm=="cslda_s"),]
-d = d[which(d$algorithm=="cslda" & d$initialization_strategy=="baseline"),]
-d = d[which(d$algorithm=="varmomresp"),]
-d = d[which(d$algorithm=="varraykar"),]
-d = d[which(d$algorithm=="cslda_s" & d$corpus=="CFSIMPLEGROUPS" & d$num_annotators==5),]
-d = d[which(d$algorithm=="cslda_s" & d$corpus=="CFSIMPLEGROUPS" & d$num_annotators==20),]
+d = mdata[which(mdata$annotator_accuracy=="CFBETA"),]
 
-#d = d[which(d$annotator_accuracy!='CONFLICT'),]
-#d = d[which(d$annotator_accuracy=='CONFLICT'),]
-
-plotAlgorithms(d,"labeled_acc","Inferred Label Accuracy",ymin=0,facets="~num_annotators~annotator_accuracy~corpus~eta_variance~num_topics")
-plotAlgorithms(d,"log_joint","Inferred Label Accuracy",ymin=min(d$log_joint),ymax=max(d$log_joint))
-plotAlgorithms(d,"btheta","BTheta")
-plotAlgorithms(d,"bgamma","BGamma",ymin=0)
-plotAlgorithms(d,"cgamma","CGamma",ymin=0,ymax=50)
-plotAlgorithms(d,"bphi","BPhi",ymin=0,ymax=2)
-plotAlgorithms(d,"top3_labeled_acc","Top 3 Labeled Accuracy",ymin=0)
-plotAlgorithms(d,"unannotated_document_weight","Lambda",ymin=0)
-plotAlgorithms(d,"num_trusted_labels","Num Trusted Labels",ymin=0,ymax=510)
-plotAlgorithms(d,"unlabeled_acc","Unlabeled Accuracy")
-plotAlgorithms(d,"heldout_acc","Heldout Accuracy")
-plotAlgorithms(d,"overall_acc","Overall Accuracy")
-plotAlgorithms(d,"annacc_rmse","Annotator RMSE",ymin=0,ylabel="Annotator RMSE")
-plotAlgorithms(d,"annacc_mat_rmse","Annotator Matrix RMSE",ymin=0,ymax=.2)
+facets <- "~annotator_accuracy~corpus~num_topics~vary_annotator_rates"
+plotAlgorithms(d,"labeled_acc","Inferred Label Accuracy",ymin=0,facets=facets)
+plotAlgorithms(d,"unlabeled_acc","Unlabeled Label Accuracy",ymin=0,facets=facets)
+plotAlgorithms(d,"heldout_acc","Test Label Accuracy",ymin=0,facets=facets)
+plotAlgorithms(d,"log_joint","Inferred Label Accuracy",ymin=min(d$log_joint),ymax=max(d$log_joint),facets=facets)
+plotAlgorithms(d,"overall_acc","Overall Accuracy",facets=facets)
+plotAlgorithms(d,"btheta","BTheta",facets=facets)
+plotAlgorithms(d,"bgamma","BGamma",ymin=0,facets=facets)
+plotAlgorithms(d,"cgamma","CGamma",ymin=0,ymax=50,facets=facets)
+plotAlgorithms(d,"bphi","BPhi",ymin=0,ymax=2,facets=facets)
+plotAlgorithms(d,"top3_labeled_acc","Top 3 Labeled Accuracy",ymin=0,facets=facets)
+plotAlgorithms(d,"annacc_rmse","Annotator RMSE",ymin=0,ylabel="Annotator RMSE",facets=facets)
+plotAlgorithms(d,"annacc_mat_rmse","Annotator Matrix RMSE",ymin=0,ymax=.2,facets=facets)
 
 plot(d$log_joint, d$labeled_acc)
 j = d[which(d$algorithm!='itemresp' & d$algorithm!='momresp'),]

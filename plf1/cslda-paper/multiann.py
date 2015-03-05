@@ -95,7 +95,7 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
     javacommand = 'cd {cwd} && {java}'.format(cwd=os.getcwd(), java=java)
 
     num_evalpoints = 10
-    repeats = 3
+    repeats = 1
     chains = 1 # TODO: consider more for sampling runs
 
     # sweep parameters
@@ -113,7 +113,7 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             #'data/multiresp-2.tgz',
             #'data/cfsimplegroups1000a',
             'data/newsgroups',
-            #'data/cfgroups1000',
+            'data/cfgroups1000',
             #'data/dredze/derived',
             #'data/enron',
             #'data/r8',
@@ -169,7 +169,7 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             #}, default='grr', matchsubstrings=True).generator),
             }, default='kdeep', matchsubstrings=True).generator),
         ('--annotator-accuracy', broom.Mapper('--basedir',{
-            #'newsgroups':"FILE",
+            'newsgroups':"FILE",
             'groups1000':None,
             'dredze':None,
             #'kdeep':("FILE","LOW","EXPERT","CONFLICT"),
@@ -232,9 +232,9 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             'webkb': int(round(1.5*num_classes['webkb'])),
         }, matchsubstrings=True).generator),
         ('--training',broom.Mapper('--labeling-strategy',{
-            'cslda':('sample-z-500:sample-all-1000','sample-z-500:maximize-all'),
-            'itemresp':('sample-all-500','maximize-all'),
+            'cslda':('sample-z-500:maximize-all'),
             #'cslda':('sample-z-500:sample-all-1000','sample-z-500:maximize-all'),
+            'itemresp':('sample-all-500','maximize-all'),
         },default='maximize-all').generator),
         ('--diagonalization-method',"GOLD"),
         ('--gold-instances-for-diagonalization',-1),
@@ -244,7 +244,9 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
         #('--inline-hyperparam-tuning', ('',None)),
         ('--inline-hyperparam-tuning'),
 
-        ('--vary-annotator-rates',('',None)),
+        ('--vary-annotator-rates',broom.Mapper('--annotator-accuracy',{
+            'FILE': ('',None),
+        },default=None).generator),
 
         ('--validation-percent', 0), 
         #('--validation-percent', 10), 
