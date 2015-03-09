@@ -198,16 +198,17 @@ plotAlgorithms <- function(dat, yvarname, title, xvarname="num_documents_with_an
   }
 
   # base plot
-  plt <- ggplot(dat=dfc, aes_string(x=xvarname, y=yvarname, color="algorithm", group="algorithm")) + 
+  plt <- ggplot(dat=dfc, aes_string(x=xvarname, y=yvarname, color="algorithm", group="algorithm")) +
     ggtitle(title) +
     geom_errorbar(aes_string(ymin=sprintf("%s-sd",yvarname), ymax=sprintf("%s+sd",yvarname))) +
     geom_line(size=0.8) +
-    geom_point(aes(shape=algorithm),size=shapesize,color='black') + 
+    geom_point(aes(shape=algorithm),size=shapesize,color='black') +
     ylim(ymin,ymax) +
-    ylab(ylabel) + 
-    xlab(sprintf(xlabel,format(divisor,big.mark=',',big.interval=3))) + 
+    ylab(ylabel) +
+    xlab(sprintf(xlabel,format(divisor,big.mark=',',big.interval=3))) +
     scale_x_continuous(labels=xformatter) +
-    theme(plot.title = element_text(lineheight=1.8,face='bold')) 
+    theme(plot.title = element_text(lineheight=1.8,face='bold')) +
+    theme_bw()
   # line shapes
   if (!is.null(algorithm_colors)){
     plt <- plt + scale_colour_manual(values=algorithm_colors)
@@ -261,6 +262,12 @@ data = read.csv("2015-02-25-acl-hypertuning.csv")
 data = read.csv("2015-02-26-grr-extended.csv")
 # newsgroups experiments with empirical annotator contribution rates
 data = read.csv("2015-03-04.csv")
+# reran previous and added experiments with two simplified cfgroups
+# cfsimplegroups1000b randomly chooses a single label per annotator/instance
+# cfsimplegroups1000b chooses a single label per annotator/instance; the correct when available
+# also added newsgroups with annotate-top-k-choices=3 set to see the effect of this 
+# weird annotation scheme in simulation
+data = read.csv("2015-03-05.csv")
 
 #########################################################
 #             Prototyping
@@ -278,12 +285,10 @@ d = mdata[which(mdata$corpus=="R52"),]
 d = mdata[which(mdata$corpus=="CADE12"),]
 d = mdata[which(mdata$corpus=="WEBKB"),]
 d = mdata[which(mdata$corpus=="CFGROUPS1000"),]
-d = mdata[which(mdata$corpus=="CFSIMPLEGROUPS"),]
-d = mdata[which(mdata$corpus=="CFSIMPLEGROUPS" | mdata$corpus=="CFGROUPS1000"),]
 
 d = mdata[which(mdata$annotator_accuracy=="CFBETA"),]
 
-facets <- "~annotator_accuracy~corpus~num_topics~vary_annotator_rates"
+facets <- "~annotator_accuracy~dataset~num_topics~vary_annotator_rates"
 plotAlgorithms(d,"labeled_acc","Inferred Label Accuracy",ymin=0,facets=facets)
 plotAlgorithms(d,"unlabeled_acc","Unlabeled Label Accuracy",ymin=0,facets=facets)
 plotAlgorithms(d,"heldout_acc","Test Label Accuracy",ymin=0,facets=facets)
@@ -521,104 +526,3 @@ d = d[which(d$algorithm=="MomResp" | d$algorithm=="LogResp" | d$algorithm=="Majo
 d = d[which(d$d=="d = 3"),]
 plotAlgorithms(d,"labeled_acc","Crossover Grid",ymin=0.0,divisor=1000,shapesize=2,facets="~d~annotator_accuracy~corpus")
 ggsave("crossover-grid.png",width=20,height=20,units='cm')
-
-
-#########################################################
-#             EMNLP Main Paper
-#########################################################
-mdata <- massageData(data)
-
-d = mdata[which(mdata$corpus=="NEWSGROUPS"),]
-plotAlgorithms(d,"labeled_acc","Inferred Label Accuracy",ymin=.27,shapesize=1)
-ggsave("newsgroups-labeled.eps",width=20,height=12,units='cm')
-
-# d = mdata[which(mdata$corpus=="NEWSGROUPS"),]
-# d = d[which(d$num_annotations<=60000 & d$k<=3 & (d$annotator_accuracy=='LOW' | d$annotator_accuracy=='CONFLICT')),]
-# plotAlgorithms(d,"labeled_acc","",ymin=.25,shapesize=1)
-# ggsave("newsgroups-labeled-zoom.eps",width=14,height=21,units='cm')
-
-d = mdata[which(mdata$corpus=="NEWSGROUPS"),]
-d = d[which((d$k==10 | d$k==1) & (d$annotator_accuracy=='LOW') & (d$algorithm=='baseline' | d$algorithm=='multiresp')),]
-plotAlgorithms(d,"heldout_acc","",xlim=c(0,5.2), ymin=.2,shapesize=2)
-ggsave("newsgroups-heldout-1.eps",width=14,height=10,units='cm')
-
-# d = mdata[which(mdata$corpus=="NEWSGROUPS"),]
-# d = d[which((d$k==10 | d$k==1) & (d$annotator_accuracy=='LOW') & (d$algorithm=='baseline' | d$algorithm=='multiresp')),]
-# plotAlgorithms(d,"heldout_acc","", ymin=.2,shapesize=2)
-# ggsave("newsgroups-heldout-2.eps",width=8,height=10,units='cm')
-
-d = mdata[which(mdata$corpus=="NEWSGROUPS"),]
-#d = d[which(d$k==1 & d$annotator_accuracy=='LOW'),]
-d = d[which(d$k==1 & (d$annotator_accuracy=='LOW' | d$annotator_accuracy=='CONFLICT')),]
-plotAlgorithms(d,"annacc_rmse","",ymin=0,ymax=.35,ylabel="Annotator RMSE",shapesize=2)
-ggsave("newsgroups-annacc.eps",width=14,height=7,units='cm')
-
-d = mdata[which(mdata$corpus=="ENRON"),]
-plotAlgorithms(d,"labeled_acc","",ymin=.2,shapesize=1)
-ggsave("enron-labeled.eps",width=20,height=12,units='cm')
-
-# d = mdata[which(mdata$corpus=="ENRON"),]
-# d = d[which(d$num_annotations<=30000 & d$k<=3 & (d$annotator_accuracy=='LOW' | d$annotator_accuracy=='CONFLICT')),]
-# plotAlgorithms(d,"labeled_acc","",ymin=.20,shapesize=1)
-# ggsave("enron-labeled-zoom.eps",width=14,height=12,units='cm')
-
-# bi-corpus zoomed-in graph
-d = mdata
-d = d[which((d$k<=3) & (d$annotator_accuracy=='CONFLICT')),]
-plotAlgorithms(d,"labeled_acc","",xlim=c(0,6.2), ymin=.2,shapesize=2,corpusFacet=TRUE)
-ggsave("zoomed-labeled.eps",width=14,height=14,units='cm')
-
-#########################################################
-#             ICML Supplementary Material
-#########################################################
-width <- 8
-height <- 9
-units <- 'in'
-mdata <- massageData(data) 
-
-# -----newsgroups------
-d = mdata[which(mdata$corpus=="NEWSGROUPS"),]
-plotAlgorithms(d,"labeled_acc","Newsgroups Labeled",ymin=.27)
-ggsave("supplement-newsgroups-labeled.eps",width=width,height=height,units=units)
-
-d = mdata[which(mdata$corpus=="NEWSGROUPS"),]
-plotAlgorithms(d,"unlabeled_acc","Newsgroups Unlabeled",ymin=.20,xlim=c(0,1.7))
-ggsave("supplement-newsgroups-unlabeled.eps",width=width,height=height,units=units)
-
-d = mdata[which(mdata$corpus=="NEWSGROUPS"),]
-d = d[which(!grepl('itemresp',d$algorithm)),]
-plotAlgorithms(d,"overall_acc","Newsgroups Overall",ymin=.20)
-ggsave("supplement-newsgroups-overall.eps",width=width,height=height,units=units)
-
-d = mdata[which(mdata$corpus=="NEWSGROUPS"),]
-d = d[which(d$algorithm=='baseline' | d$algorithm=='multiresp_s' | d$algorithm=='multiresp'),]
-plotAlgorithms(d,"heldout_acc","Newsgroups Heldout",ymin=.20)
-ggsave("supplement-newsgroups-heldout.eps",width=width,height=height,units=units)
-
-d = mdata[which(mdata$corpus=="NEWSGROUPS"),]
-plotAlgorithms(d,"annacc_rmse","Newsgroups Annotator RMSE",ymin=0,ymax=.35)
-ggsave("supplement-newsgroups-annacc.eps",width=width,height=height,units=units)
-
-# -------enron-------
-d = mdata[which(mdata$corpus=="ENRON"),]
-plotAlgorithms(d,"labeled_acc","Enron Labeled",ymin=.20)
-ggsave("supplement-enron-labeled.eps",width=width,height=height,units=units)
-
-d = mdata[which(mdata$corpus=="ENRON"),]
-plotAlgorithms(d,"unlabeled_acc","Enron Unlabeled",ymin=.20,xlim=c(0,4))
-ggsave("supplement-enron-unlabeled.eps",width=width,height=height,units=units)
-
-d = mdata[which(mdata$corpus=="ENRON"),]
-d = d[which(!grepl('itemresp',d$algorithm)),]
-plotAlgorithms(d,"overall_acc","Enron Overall",ymin=.20)
-ggsave("supplement-enron-overall.eps",width=width,height=height,units=units)
-
-d = mdata[which(mdata$corpus=="ENRON"),]
-d = d[which(d$algorithm=='baseline' | d$algorithm=='multiresp_s' | d$algorithm=='multiresp'),]
-plotAlgorithms(d,"heldout_acc","Enron Heldout",ymin=.20)
-ggsave("supplement-enron-heldout.eps",width=width,height=height,units=units)
-
-d = mdata[which(mdata$corpus=="ENRON"),]
-plotAlgorithms(d,"annacc_rmse","Enron Annotator RMSE",ymin=0,ymax=.35)
-ggsave("supplement-enron-annacc.eps",width=width,height=height,units=units)
-

@@ -112,6 +112,8 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             #'data/naivebayes-20',
             #'data/multiresp-2.tgz',
             #'data/cfsimplegroups1000a',
+            'data/cfsimplegroups1000b',
+            'data/cfsimplegroups1000c',
             'data/newsgroups',
             'data/cfgroups1000',
             #'data/dredze/derived',
@@ -137,6 +139,8 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
         ('--dataset', broom.Mapper('--basedir',{
             'cfgroups1000':'cfgroups1000.json',
             'cfsimplegroups1000a':'cfsimplegroups1000a.json',
+            'cfsimplegroups1000b':'cfsimplegroups1000b.json',
+            'cfsimplegroups1000c':'cfsimplegroups1000c.json',
             'enron':'ldc_split',
             'dredze':'1v0.json',
             },default='full_set',matchsubstrings=True).generator),
@@ -184,6 +188,10 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             'real':None,
             #}, default=1).generator),
             }, default=depth).generator),
+        ('--annotate-top-k-choices', broom.Mapper('--annotation-strategy',{
+            'real':None,
+            #}, default=1).generator),
+            }, default=(None,3)).generator),
         #('--num-annotator-clusters', broom.Mapper('--annotation-strategy',{
         #    'real':-1,
         #    #'real':(5,20,-1),
@@ -276,6 +284,8 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             'newsgroups':(1.+2.)/(20.+2.),
             'cfgroups1000':(1.+2.)/(20.+2.),
             'cfsimplegroups1000a':(1.+2.)/(10.+2.),
+            'cfsimplegroups1000b':(1.+2.)/(20.+2.),
+            'cfsimplegroups1000c':(1.+2.)/(20.+2.),
             'ng':(1.+2.)/(20.+2.),
             'enron':(1.+2.)/(32.+2.), 
             'dredze':(1.+2.)/(2.+2.),
