@@ -174,6 +174,10 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
         ('--training-percent', 85), 
         ('--validation-percent', 0), 
 
+        ('--truncate-unannotated-data',broom.Mapper('--labeling-strategy',{
+            'varmomresp':(None,''),
+        },default=None).generator),
+
         # weak priors
         ('--b-theta',1.0),
         ('--b-phi','0.1'),

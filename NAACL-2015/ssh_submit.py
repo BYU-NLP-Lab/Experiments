@@ -4,6 +4,7 @@ import argparse
 import fig4a
 import fig4b
 import fig5
+import fig5conflictmild
 import table2
 import fig6
 import os
@@ -19,6 +20,7 @@ def composite_job_generator(first_experiment, results_dir, mem):
     mkdir_q(os.path.join(results_dir,'fig4a'))
     mkdir_q(os.path.join(results_dir,'fig4b'))
     mkdir_q(os.path.join(results_dir,'fig5'))
+    mkdir_q(os.path.join(results_dir,'fig5conflictmild'))
     mkdir_q(os.path.join(results_dir,'table2'))
     mkdir_q(os.path.join(results_dir,'fig6'))
     for job in fig4a.jobs(first_experiment, os.path.join(results_dir,'fig4a'), None, mem):
@@ -26,6 +28,8 @@ def composite_job_generator(first_experiment, results_dir, mem):
     for job in fig4b.jobs(first_experiment, os.path.join(results_dir,'fig4b'), None, mem):
         yield job
     for job in fig5.jobs(first_experiment, os.path.join(results_dir,'fig5'), None, mem):
+        yield job
+    for job in fig5conflictmild.jobs(first_experiment, os.path.join(results_dir,'fig5conflictmild'), None, mem):
         yield job
     for job in table2.jobs(first_experiment, os.path.join(results_dir,'table2'), None, mem):
         yield job

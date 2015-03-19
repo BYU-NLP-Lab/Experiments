@@ -83,7 +83,7 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
     javacommand = 'cd {cwd} && {java}'.format(cwd=os.getcwd(), java=java)
 
     num_evalpoints = 10
-    repeats = 2
+    repeats = 5
     chains = 1 # TODO: consider more for sampling runs
 
     # sweep parameters
@@ -103,12 +103,12 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             #'data/cfgroups/cfsimplegroups1000b',
             #'data/cfgroups/cfsimplegroups1000c',
             #'data/cfgroups/cfgroups1000',
-            'data/newsgroups',
+            #'data/newsgroups',
             #'data/enron',
             'data/r8',
             'data/webkb',
-            'data/cade12',
-            'data/r52',
+            #'data/cade12',
+            #'data/r52',
             )),
         ('--dataset-type', broom.Mapper('--basedir',{
             'naivebayes-20':'NB20',

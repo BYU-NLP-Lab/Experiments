@@ -140,7 +140,9 @@ massageData <- function(dat){
   dat$algorithm <- factor(dat$algorithm)
 
   # name num_annotators into a factor (so it can be used as a plotting facet)
-  dat$num_annotators <- factor(dat$num_annotators)
+  if (!is.null(dat$num_annotators)){
+    dat$num_annotators <- factor(dat$num_annotators)
+  }
 
   # rename k to 'd' and re-order
   require(plyr)
@@ -148,10 +150,14 @@ massageData <- function(dat){
   dat$d <- factor(dat$d, levels = c('d = 1','d = 2','d = 3','d = 5','d = 10'))
   
   # prettify factor names
-  dat$tuning <- sprintf("Hyperparam Tuning = %s",dat$inline_hyperparam_tuning)
+  if (!is.null(dat$inline_hyperparam_tuning)){
+    dat$tuning <- sprintf("Hyperparam Tuning = %s",dat$inline_hyperparam_tuning)
+  }
 
   # eta variance -> factor
-  dat$eta_variance <- factor(dat$eta_variance)
+  if (!is.null(dat$eta_variance)){
+    dat$eta_variance <- factor(dat$eta_variance)
+  }
 
   # treat simplified cfgroups as its own corpus
   dat$corpus <- as.character(dat$corpus)
@@ -288,7 +294,7 @@ d = mdata[which(mdata$corpus=="CFGROUPS1000"),]
 
 d = mdata[which(mdata$annotator_accuracy=="CFBETA"),]
 
-facets <- "~annotator_accuracy~dataset~num_topics~vary_annotator_rates"
+facets <- "~annotator_accuracy~dataset~num_topics~vary_annotator_rates~annotate_top_k_choices"
 plotAlgorithms(d,"labeled_acc","Inferred Label Accuracy",ymin=0,facets=facets)
 plotAlgorithms(d,"unlabeled_acc","Unlabeled Label Accuracy",ymin=0,facets=facets)
 plotAlgorithms(d,"heldout_acc","Test Label Accuracy",ymin=0,facets=facets)
@@ -466,7 +472,7 @@ ggsave("newsgroups-annacc.eps",width=20,height=6,units='cm')
 #             NIPS 2014 workshop
 #########################################################
 require(ggplot2)
-setwd('/aml/home/plf1/altgit/statnlp/scripts/learningcurve/csv')
+setwd('/aml/home/plf1/git/Experiments/plf1/cslda-paper/csv')
 #data = read.csv("2014-10-09-nips.csv")
 data = read.csv("2014-12-04-naacl-withchains.csv")
 #data = read.csv("2014-12-04-naacl.csv")

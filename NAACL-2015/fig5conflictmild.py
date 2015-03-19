@@ -83,8 +83,8 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
     javacommand = 'cd {cwd} && {java}'.format(cwd=os.getcwd(), java=java)
 
     num_evalpoints = 10
-    repeats = 1
-    chains = 5 # TODO: consider more for sampling runs
+    repeats = 5
+    chains = 1 # TODO: consider more for sampling runs
 
     # sweep parameters
     cwd = os.getcwd()
@@ -102,8 +102,8 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             #'data/cfgroups/cfsimplegroups1000a',
             #'data/cfgroups/cfsimplegroups1000b',
             #'data/cfgroups/cfsimplegroups1000c',
-            'data/cfgroups/cfgroups1000',
-            #'data/newsgroups',
+            #'data/cfgroups/cfgroups1000',
+            'data/newsgroups',
             #'data/enron',
             #'data/r8',
             #'data/webkb',
@@ -130,7 +130,7 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             'naivebayes-20':parabolic_points(150,data_size['newsgroups']*depth,num_evalpoints),
             'newsgroups':parabolic_points(150,data_size['newsgroups']*depth,num_evalpoints),
             'ng':parabolic_points(150,data_size['newsgroups']*depth,num_evalpoints),
-            'groups1000':parabolic_points(64,10000,num_evalpoints),
+            'groups1000':parabolic_points(150,10000,num_evalpoints),
             'cade12':parabolic_points(150,data_size['cade12']*depth,num_evalpoints),
             'enron':parabolic_points(150,data_size['enron']*depth,num_evalpoints),
             'r8':parabolic_points(150,data_size['r8']*depth,num_evalpoints),
@@ -152,7 +152,7 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             }, default='kdeep', matchsubstrings=True).generator),
         ('--annotator-accuracy', broom.Mapper('--basedir',{
             'groups1000':None,
-            }, default="MED", matchsubstrings=True).generator),
+            }, default=("CONFLICT_MILD"), matchsubstrings=True).generator),
         ('-k', broom.Mapper('--annotation-strategy',{
             'real':None,
             }, default=depth).generator),
@@ -173,6 +173,10 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
 
         ('--training-percent', 85), 
         ('--validation-percent', 0), 
+
+        ('--truncate-unannotated-data',broom.Mapper('--labeling-strategy',{
+            'varmomresp':(None,''),
+        },default=None).generator),
 
         # weak priors
         ('--b-theta',1.0),

@@ -135,7 +135,7 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             'enron':parabolic_points(150,data_size['enron']*depth,num_evalpoints),
             'r8':parabolic_points(150,data_size['r8']*depth,num_evalpoints),
             'r52':parabolic_points(150,data_size['r52']*depth,num_evalpoints),
-            'webkb':parabolic_points(150,data_size['webkb']*depth,num_evalpoints),
+            'webkb':parabolic_points(64,data_size['webkb']*depth,num_evalpoints),
             }, matchsubstrings=True).generator),
         ('--feature-normalization-constant',broom.Mapper('--basedir',{
             'r8':60,
