@@ -246,16 +246,16 @@ setwd('/aml/home/plf1/git/Experiments/NAACL-2015/csv/')
 data = read.csv("naacl-2015-1.csv")
 mdata <- massageData(data); 
 # rename 'varmomresp' -> 'momresp', 'varraykar' -> 'logresp'
-mdata$algorithm <- mapvalues(mdata$algorithm, from=c('varmomresp','varmomresp_t','varraykar','baseline','raykar','momresp_s'), to=c('MomResp','MomResp-','LogResp','Majority','LogResp+EM',"MomResp+Gibbs"))
-algorithm_colors = c('MomResp'='#F4766D', 'MomResp+MF'='#F4766D',    'LogResp'='#00BB34', 'LogResp+MF'='#00BB34',    'Majority'='#7B9AFF',   'LogResp+EM'='#777777', 'MomResp+Gibbs'='#777777',   'MomResp-'='#B69E00')
-algorithm_shapes = c('MomResp'=1, 'MomResp+Gibbs'=1, 'MomResp+MF'=1,    'LogResp'=2, 'LogResp+MF'=2, 'LogResp+EM'=2,    'Majority'=3,   'LogResp+EM'=4, 'MomResp+Gibbs'=4,   'MomResp-'=5)
+mdata$algorithm <- mapvalues(mdata$algorithm, from=c('varmomresp','varmomresp_t','varraykar','baseline','raykar','momresp_s'), to=c('MomResp','MomRespA','LogResp','Majority','LogResp+EM',"MomResp+Gibbs"))
+algorithm_colors <- c('MomResp'='#F4766D', 'MomResp+MF'='#F4766D',    'LogResp'='#00BB34', 'LogResp+MF'='#00BB34',    'Majority'='#7B9AFF',   'LogResp+EM'='#777777', 'MomResp+Gibbs'='#777777',   'MomRespA'='#B69E00')
+algorithm_shapes <- c('MomResp'=1, 'MomResp+MF'=1,    'LogResp'=2, 'LogResp+MF'=2,   'Majority'=3,   'LogResp+EM'=4,  'MomResp+Gibbs'=6,   'MomRespA'=7)
 
 # momresp vs logresp on newsgroups
 d = mdata
 d = d[which(d$corpus=="NEWSGROUPS"),] 
 d = d[which(d$algorithm=="Majority" | d$algorithm=="MomResp" | d$algorithm=="LogResp"),]
 d = d[which(d$annotator_accuracy!="CONFLICT_MILD"),]
-#d = d[which(d$algorithm=="MomResp-"),]
+#d = d[which(d$algorithm=="MomRespA"),]
 plotAlgorithms(d,"labeled_acc","20 Newsgroups",ymin=0.25,ymax=1,divisor=1000,shapesize=2,facets="~annotator_accuracy", algorithm_colors=algorithm_colors, algorithm_shapes=algorithm_shapes)
 ggsave("../images/newsgroups-labeled.eps",width=20,height=6,units='cm')
 d = d[which(d$algorithm=="MomResp" | d$algorithm=="LogResp"),]
@@ -265,16 +265,16 @@ ggsave("../images/newsgroups-heldout.eps",width=20,height=6,units='cm')
 # mild conflict variant on newsgroups
 d = mdata
 d = d[which(d$corpus=="NEWSGROUPS"),] 
-d = d[which(d$algorithm=="Majority" | d$algorithm=="MomResp" | d$algorithm=="LogResp" | d$algorithm=="MomResp-"),]
+d = d[which(d$algorithm=="Majority" | d$algorithm=="MomResp" | d$algorithm=="LogResp" | d$algorithm=="MomRespA"),]
 d = d[which(d$annotator_accuracy=="CONFLICT_MILD"),]
-#d = d[which(d$algorithm=="MomResp-"),]
+#d = d[which(d$algorithm=="MomRespA"),]
 plotAlgorithms(d,"labeled_acc","20 Newsgroups",ymin=0.25,ymax=1,divisor=1000,shapesize=2,facets="~annotator_accuracy", algorithm_colors=algorithm_colors, algorithm_shapes=algorithm_shapes)
 ggsave("../images/conflict-mild.eps",width=10,height=5,units='cm')
 
 # # the effect of semi-supervision
 # d = mdata
 # d = d[which(d$corpus=="NEWSGROUPS"),] 
-# d = d[which(d$algorithm=="Majority" | d$algorithm=="MomResp" | d$algorithm=="LogResp" | d$algorithm=="MomResp-"),]
+# d = d[which(d$algorithm=="Majority" | d$algorithm=="MomResp" | d$algorithm=="LogResp" | d$algorithm=="MomRespA"),]
 # d = d[which(d$annotator_accuracy=="LOW"),]
 # plotAlgorithms(d,"labeled_acc","20 Newsgroups",ymin=0.25, ymax=1 ,divisor=1000,shapesize=2,facets="~annotator_accuracy", algorithm_colors=algorithm_colors, algorithm_shapes=algorithm_shapes)
 # ggsave("../images/semi-supervision.eps",width=10,height=5,units='cm')
@@ -286,7 +286,7 @@ d = d[which(d$corpus=="R52"),]
 d = d[which(d$algorithm=="LogResp+EM" | d$algorithm=="LogResp+MF"),]
 d = d[which(d$annotator_accuracy=="LOW"),]
 d = d[which(d$num_annotations>200),]
-plotAlgorithms(d,"labeled_acc","LogResp Inference",ymin=0.4,ymax=1,divisor=1000,facets="~annotator_accuracy~corpus",shapesize=2, algorithm_colors=algorithm_colors, algorithm_shapes=algorithm_shapes)
+plotAlgorithms(d,"labeled_acc","LogResp Inference",ymin=0,ymax=0.6,divisor=1000,facets="~annotator_accuracy~corpus",shapesize=2, algorithm_colors=algorithm_colors, algorithm_shapes=algorithm_shapes)
 ggsave("../images/var-versus-em.eps",width=10,height=5,units='cm')
 
 
