@@ -30,7 +30,7 @@ num_classes = {
     'airlines':3,
     'companies':6,
 }
-depth = 7
+depth = 20
 
 ######################################################
 #                   Helper Functions
@@ -100,8 +100,8 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
     java = "java -Xmx{mem} -cp {classpath} {main}".format(mem=mem, classpath=':'.join(classpath), main=main)
     javacommand = 'cd {cwd} && {java}'.format(cwd=os.getcwd(), java=java)
 
-    num_evalpoints = 8
-    repeats = 5
+    num_evalpoints = 20
+    repeats = 3
     chains = 1 # TODO: consider more for sampling runs
 
     # sweep parameters
@@ -115,24 +115,12 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
 
         # dataset-related params
         ('--basedir',(
-            #'data/naivebayes-20',
-            #'data/multiresp-2.tgz',
-            'data/cfsimplegroups1000a',
-            #'data/cfsimplegroups1000b',
-            #'data/cfsimplegroups1000c',
-            'data/cfsimplegroups1000d',
-            'data/newsgroups',
-            'data/cfgroups1000',
-            'data/weather',
-            #'data/weathextra',
-            #'data/airlines',
-            #'data/companies',
-            #'data/dredze/derived',
+            #'data/newsgroups',
             'data/enron',
             'data/r8',
-            'data/webkb',
-            'data/cade12',
-            'data/r52',
+            #'data/webkb',
+            #'data/cade12',
+            #'data/r52',
             )),
         ('--dataset-type', broom.Mapper('--basedir',{
             'naivebayes-20':'NB20',
@@ -209,9 +197,9 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             'groups1000':'real',
             #'groups1000':'reallayers',
             #}, default='grr', matchsubstrings=True).generator),
-            }, default='kdeep', matchsubstrings=True).generator),
+            }, default='grr', matchsubstrings=True).generator),
         ('--annotator-accuracy', broom.Mapper('--basedir',{
-            'newsgroups':"FILE",
+            #'newsgroups':"FILE",
             'groups1000':None,
             'dredze':None,
             'weath':None,
@@ -228,7 +216,7 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
         ('-k', broom.Mapper('--annotation-strategy',{
             'real':None,
             #}, default=1).generator),
-            }, matchsubstrings=True, default=depth).generator),
+            }, matchsubstrings=True, default=1).generator),
         #('--annotate-top-k-choices', broom.Mapper('--annotation-strategy',{
         #    'real':None,
         #    #}, default=1).generator),
@@ -262,7 +250,7 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
         #('--labeling-strategy',['CSLDA','VARITEMRESP','VARMOMRESP']), 
         #('--labeling-strategy',['ITEMRESP','VARITEMRESP']), 
         #('--labeling-strategy',['UBASELINE','CSLDA','LOGRESP_LDA','VARMOMRESP','VARLOGRESP','VARITEMRESP']), 
-        ('--labeling-strategy',['UBASELINE','CSLDA','VARMOMRESP','VARLOGRESP','VARITEMRESP']), 
+        ('--labeling-strategy',['UBASELINE','CSLDA','LOGRESP_LDA','VARMOMRESP','VARLOGRESP','VARITEMRESP']), 
         #('--labeling-strategy',['UBASELINE','CSLDA','LOGRESP_LDA','VARMOMRESP','VARITEMRESP']), 
         #('--labeling-strategy',['UBASELINE','CSLDA','VARMOMRESP','VARITEMRESP','VARLOGRESP']), 
         #('--labeling-strategy',['UBASELINE','VARMOMRESP']), 
@@ -292,8 +280,8 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             'companies': int(round(1.5*num_classes['companies'])),
         }, matchsubstrings=True).generator),
         ('--training',broom.Mapper('--labeling-strategy',{
-            'CSLDA':('sample-z-500:maximize-all','sample-z-500:sample-all-900:sample-all-100'),
-            'LOGRESP_LDA':('sample-z-500:maximize-y'),
+            'CSLDA':('sample-z-500:sample-all-900:sample-all-100'),
+            'LOGRESP_LDA':('sample-z-500:sample-y-900:sample-y-100'),
             #'CSLDA':('sample-z-500:sample-all-1000','sample-z-500:maximize-all'),
             'ITEMRESP':('maximize-all'),
         },default='maximize-all').generator),
