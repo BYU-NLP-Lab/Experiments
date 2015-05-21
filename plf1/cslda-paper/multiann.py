@@ -83,11 +83,6 @@ class TopicsFileName():
         self.directory=directory
     def generator(self,keys,state):
         yield None
-        #if 'CSLDA' in state['--labeling-strategy']:
-        #    filename = "{dr}/{name}-{numtopics}".format(dr=self.directory,name=state['--dataset-type'],numtopics=state['--num-topics'])
-        #    yield filename if path.exists(filename) else None
-        #else:
-        #    yield None
 
 ######################################################
 #                   MAIN
@@ -101,7 +96,7 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
     javacommand = 'cd {cwd} && {java}'.format(cwd=os.getcwd(), java=java)
 
     num_evalpoints = 8
-    repeats = 5
+    repeats = 3
     chains = 1 # TODO: consider more for sampling runs
 
     # sweep parameters
@@ -117,27 +112,31 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
         ('--basedir',(
             #'data/naivebayes-20',
             #'data/multiresp-2.tgz',
-            'data/cfsimplegroups1000a',
+            #'data/cfsimplegroups1000a',
             #'data/cfsimplegroups1000b',
             #'data/cfsimplegroups1000c',
-            'data/cfsimplegroups1000d',
+            #'data/cfsimplegroups1000d',
             'data/newsgroups',
-            'data/cfgroups1000',
-            'data/weather',
+            #'data/vectorgroups-d2v',
+            #'data/vectorgroups-w2v',
+            #'data/vectorgroups-lda',
+            #'data/cfgroups1000',
+            #'data/weather',
             #'data/weathextra',
             #'data/airlines',
             #'data/companies',
             #'data/dredze/derived',
-            'data/enron',
-            'data/r8',
-            'data/webkb',
-            'data/cade12',
-            'data/r52',
+            #'data/enron',
+            #'data/r8',
+            #'data/webkb',
+            #'data/cade12',
+            #'data/r52',
             )),
         ('--dataset-type', broom.Mapper('--basedir',{
             'naivebayes-20':'NB20',
             'multiresp-2':'NB2',
             'newsgroups':'NEWSGROUPS',
+            'vectorgroups':'VECTORS',
             'groups1000':'CFGROUPS1000',
             'weath':'WEATHER',
             'airlines':'AIRLINES',
@@ -170,6 +169,7 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             'airlines':parabolic_points(150,65000,num_evalpoints),
             'companies':parabolic_points(150,30000,num_evalpoints),
             'newsgroups':parabolic_points(150,data_size['newsgroups']*depth,num_evalpoints),
+            'vectorgroups':parabolic_points(150,data_size['newsgroups']*depth,num_evalpoints),
             'ng':parabolic_points(150,data_size['newsgroups']*depth,num_evalpoints),
             'groups1000':parabolic_points(150,10000,num_evalpoints),
             'dredze':parabolic_points(150,21000,num_evalpoints),
@@ -211,7 +211,8 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             #}, default='grr', matchsubstrings=True).generator),
             }, default='kdeep', matchsubstrings=True).generator),
         ('--annotator-accuracy', broom.Mapper('--basedir',{
-            'newsgroups':"FILE",
+            #'newsgroups':"FILE",
+            #'vectorgroups':"FILE",
             'groups1000':None,
             'dredze':None,
             'weath':None,
@@ -249,33 +250,11 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
         #}, default=10, matchsubstrings=True).generator),
 
         # inference #('--labeling-strategy',['MOMRESP']), #('--labeling-strategy',['LOGRESP','VARLOGRESP']), 
-        #('--labeling-strategy',['LOGRESP','VARLOGRESP']), 
-        #('--labeling-strategy',['VARMOMRESP','VARLOGRESP']), 
-        #('--labeling-strategy',['UBASELINE','VARMOMRESP','VARLOGRESP']), 
-        #('--labeling-strategy',['UBASELINE','VARITEMRESP','VARMOMRESP','VARLOGRESP']), 
-        #('--labeling-strategy',['UBASELINE','VARITEMRESP','VARMOMRESP','VARLOGRESP','LOGRESP']), 
-        #('--labeling-strategy',['UBASELINE','ITEMRESP','MOMRESP','MULTIRESP','VARITEMRESP','VARMOMRESP','VARMULTIRESP','LOGRESP','VARLOGRESP','CSLDA']), 
-        #('--labeling-strategy','ITEMRESP'), 
-        #('--labeling-strategy',['CSLDA']), 
-        #('--labeling-strategy',['UBASELINE']), 
-        #('--labeling-strategy',['UBASELINE','CSLDA','VARITEMRESP','VARMOMRESP']), 
-        #('--labeling-strategy',['CSLDA','VARITEMRESP','VARMOMRESP']), 
-        #('--labeling-strategy',['ITEMRESP','VARITEMRESP']), 
-        #('--labeling-strategy',['UBASELINE','CSLDA','LOGRESP_LDA','VARMOMRESP','VARLOGRESP','VARITEMRESP']), 
-        ('--labeling-strategy',['UBASELINE','CSLDA','VARMOMRESP','VARLOGRESP','VARITEMRESP']), 
-        #('--labeling-strategy',['UBASELINE','CSLDA','LOGRESP_LDA','VARMOMRESP','VARITEMRESP']), 
-        #('--labeling-strategy',['UBASELINE','CSLDA','VARMOMRESP','VARITEMRESP','VARLOGRESP']), 
-        #('--labeling-strategy',['UBASELINE','VARMOMRESP']), 
+        ('--labeling-strategy',broom.Mapper('--basedir',{
+            'vectorgroups': 'VARLOGRESP',
+        },default=['UBASELINE','DISCRIM','VARMOMRESP','VARLOGRESP','LOGRESP','VARITEMRESP'], matchsubstrings=True).generator), 
+        #},default=['UBASELINE','CSLDA','CSLDAP','CSLDALEX','DISCRIM','VARMOMRESP','VARLOGRESP','VARITEMRESP'], matchsubstrings=True).generator), 
         ('--initialization-strategy','BASELINE'),
-        #('--initialization-strategy',broom.Mapper('--labeling-strategy',{
-        #    'CSLDA': 'VARMOMRESP',
-        #    'LOGRESP_LDA': 'VARMOMRESP',
-        #}, default='BASELINE').generator),
-        #('--num-topics',500),
-        ('--doc-to-features-method',broom.Mapper('--labeling-strategy',{
-            #'VARLOGRESP':('WORD_COUNTS','WORD2VEC'),
-            #'VARMOMRESP':('WORD_COUNTS','WORD2VEC'),
-        }, default='WORD_COUNTS').generator),
         ('--num-topics',broom.Mapper('--basedir',{
             'naivebayes-20': int(round(1.5*num_classes['newsgroups'])),
             'newsgroups': int(round(1.5*num_classes['newsgroups'])),
@@ -290,11 +269,11 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             'weath': int(round(1.5*num_classes['weather'])),
             'airlines': int(round(1.5*num_classes['airlines'])),
             'companies': int(round(1.5*num_classes['companies'])),
-        }, matchsubstrings=True).generator),
+        }, default=-1, matchsubstrings=True).generator),
         ('--training',broom.Mapper('--labeling-strategy',{
             'CSLDA':('sample-z-500:maximize-all','sample-z-500:sample-all-900:sample-all-100'),
-            'LOGRESP_LDA':('sample-z-500:maximize-y'),
-            #'CSLDA':('sample-z-500:sample-all-1000','sample-z-500:maximize-all'),
+            'CSLDALEX':('sample-z-500:maximize-all','sample-z-500:sample-all-900:sample-all-100'),
+            'CSLDAP':('sample-z-500:maximize-y'),
             'ITEMRESP':('maximize-all'),
         },default='maximize-all').generator),
         ('--diagonalization-method',"GOLD"),
@@ -310,18 +289,11 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
         #},default=None).generator),
 
         ('--validation-percent', 15), 
-        #('--validation-percent', 10), 
-        #('--hyperparam-training', broom.Mapper('--labeling-strategy',{
-        #    #'CSLDA': ['maximize-bgamma+cgamma-1-GRID-1-ITEMRESP-acc-maximize-all'],
-        #    #'MOMRESP': ['maximize-bgamma+cgamma-1-GRID-1-ITEMRESP-acc-maximize-all'],
-        #    'ITEMRESP': ['maximize-btheta+bgamma+cgamma-1-GRID-1'],
-        #},default='none',matchsubstrings=True).generator), 
 
         # weak priors
         ('--b-theta',broom.Mapper('--labeling-strategy',{
             'CSLDA': 0.1,
-            'LOGRESP_CSLDA': 0.1,
-        }, default=1.0).generator),
+        }, default=1.0, matchsubstrings=True).generator),
         ('--b-phi','0.1'),
         ('--b-mu','0.1'),
         ('--c-mu','1'),
@@ -336,6 +308,7 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
         ('--b-gamma',broom.Mapper('--basedir',{
             'naivebayes-20':(1.+2.)/(num_classes['newsgroups']+2.),
             'newsgroups':(1.+2.)/(num_classes['newsgroups']+2.),
+            'vectorgroups':(1.+2.)/(num_classes['newsgroups']+2.),
             'weath':(1.+2.)/(num_classes['weather']+2.),
             'airlines':(1.+2.)/(num_classes['airlines']+2.),
             'companies':(1.+2.)/(num_classes['companies']+2.),
