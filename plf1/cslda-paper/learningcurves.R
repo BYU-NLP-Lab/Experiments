@@ -348,6 +348,8 @@ data = read.csv("2015-04-29.csv")
 data = read.csv("2015-05-18.csv")
 # added fully discriminative model
 data = read.csv("2015-05-20.csv")
+# added cfgroups + embedded words and annotations
+data = read.csv("2015-05-28.csv")
 
 
 #########################################################
@@ -381,6 +383,9 @@ d = d[which(grepl("w2v",d$algorithm) | d$algorithm=="baseline" | d$algorithm=="v
 d = d[which(grepl("cslda",d$algorithm)),]
 d = d[which(grepl("d2v",d$algorithm) | d$algorithm=="baseline" | d$algorithm=="varmomresp" | d$algorithm=="varlogresp" | d$algorithm=="cslda"),]
 d = d[which(grepl("lda",d$algorithm) | d$algorithm=="baseline" | d$algorithm=="varmomresp" | d$algorithm=="varlogresp" | d$algorithm=="cslda"),]
+d = d[which(grepl("discrim",d$algorithm)),]
+d = d[which(d$algorithm=="varlogresp" | d$algorithm=="logresp_m" | d$algorithm=="baseline"),]
+d = d[which(grepl("logresp",d$algorithm)),]
 d = d[which(d$algorithm=="discrim"),]
 
 facets <- "~annotator_accuracy~corpus~dataset~vary_annotator_rates"
