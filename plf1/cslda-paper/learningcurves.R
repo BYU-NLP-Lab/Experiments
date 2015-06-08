@@ -350,6 +350,9 @@ data = read.csv("2015-05-18.csv")
 data = read.csv("2015-05-20.csv")
 # added cfgroups + embedded words and annotations
 data = read.csv("2015-05-28.csv")
+# changed word2vec embeddings to use pre-calculated google 
+# vectors, and to aggregate docs via averaging rather than summing.
+data = read.csv("2015-06-06.csv")
 
 
 #########################################################
@@ -357,36 +360,23 @@ data = read.csv("2015-05-28.csv")
 #########################################################
 mdata <- massageData(data); d <- mdata
 # choose a dataset
-# d = mdata[which(mdata$corpus=="REUTERS"),]
-d = mdata[which(mdata$corpus=="ENRON"),]
-d = mdata[which(mdata$corpus=="NB20"),]
-d = mdata[which(mdata$corpus=="NEWSGROUPS"),]
-d = mdata[which(mdata$corpus=="NG"),]
-d = mdata[which(mdata$corpus=="DREDZE"),]
-d = mdata[which(mdata$corpus=="R8"),]
-d = mdata[which(mdata$corpus=="R52"),]
-d = mdata[which(mdata$corpus=="CADE12"),]
-d = mdata[which(mdata$corpus=="WEBKB"),]
-d = mdata[which(mdata$corpus=="CFGROUPS1000"),]
-d = mdata[which(mdata$corpus=="CFSIMPLEGROUPS"),]
-d = mdata[which(mdata$corpus=="WEATHER"),]
-d = mdata[which(mdata$corpus=="AIRLINES"),]
-d = mdata[which(mdata$corpus=="COMPANIES"),]
+d <- mdata; d = mdata[which(mdata$corpus=="NEWSGROUPS"),]
+d <- mdata; d = mdata[which(mdata$corpus=="NG"),]
+d <- mdata; d = mdata[which(mdata$corpus=="DREDZE"),]
+d <- mdata; d = mdata[which(mdata$corpus=="R8"),]
+d <- mdata; d = mdata[which(mdata$corpus=="R52"),]
 
-d = mdata[which(mdata$dataset=="weather.json"),]
-d = mdata[which(mdata$dataset=="weather-augmented.json"),]
-d = mdata[which(mdata$dataset=="weather-augmented-big.json"),]
-d = mdata[which(mdata$dataset=="cfgroups1000.json"),]
-
-d = d[which(d$algorithm=="baseline" | d$algorithm=="varmomresp" | d$algorithm=="varlogresp" | d$algorithm=="cslda"),]
-d = d[which(grepl("w2v",d$algorithm) | d$algorithm=="baseline" | d$algorithm=="varmomresp" | d$algorithm=="varlogresp" | d$algorithm=="cslda"),]
-d = d[which(grepl("cslda",d$algorithm)),]
-d = d[which(grepl("d2v",d$algorithm) | d$algorithm=="baseline" | d$algorithm=="varmomresp" | d$algorithm=="varlogresp" | d$algorithm=="cslda"),]
-d = d[which(grepl("lda",d$algorithm) | d$algorithm=="baseline" | d$algorithm=="varmomresp" | d$algorithm=="varlogresp" | d$algorithm=="cslda"),]
-d = d[which(grepl("discrim",d$algorithm)),]
-d = d[which(d$algorithm=="varlogresp" | d$algorithm=="logresp_m" | d$algorithm=="baseline"),]
-d = d[which(grepl("logresp",d$algorithm)),]
-d = d[which(d$algorithm=="discrim"),]
+d <- mdata; d = d[which(d$algorithm=="baseline" | d$algorithm=="varmomresp" | d$algorithm=="varlogresp" | d$algorithm=="cslda"),]
+d <- mdata; d = d[which(grepl("w2v",d$algorithm) | d$algorithm=="baseline" | d$algorithm=="varmomresp" | d$algorithm=="varlogresp" | d$algorithm=="cslda"),]
+d <- mdata; d = d[which(grepl("cslda",d$algorithm)),]
+d <- mdata; d = d[which(grepl("d2v",d$algorithm) | d$algorithm=="baseline" | d$algorithm=="varmomresp" | d$algorithm=="varlogresp" | d$algorithm=="cslda"),]
+d <- mdata; d = d[which(grepl("lda",d$algorithm) | d$algorithm=="baseline" | d$algorithm=="varmomresp" | d$algorithm=="varlogresp" | d$algorithm=="cslda"),]
+d <- mdata; d = d[which(grepl("discrim",d$algorithm)),]
+d <- mdata; d = d[which(d$algorithm=="varlogresp" | d$algorithm=="logresp_m" | d$algorithm=="baseline"),]
+d <- mdata; d = d[which(grepl("logresp",d$algorithm)),]
+d <- mdata; d = d[which(grepl("discrim",d$algorithm)),]
+d <- mdata; d = d[which(d$algorithm=="logresp"),]
+d <- mdata; d = d[which(d$algorithm=="cslda_s" | grepl("w2v",d$algorithm)),]
 
 facets <- "~annotator_accuracy~corpus~dataset~vary_annotator_rates"
 xvarname <- "num_annotations"
