@@ -2,6 +2,7 @@ csv/
 results/
 *.pyc
 *tatoes*
+*tatos*
 all
 target/
 *.log
