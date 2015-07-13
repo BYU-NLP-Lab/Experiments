@@ -324,3 +324,24 @@ d = mdata
 plotAlgorithms(d,"labeled_acc","Crossover Grid",ymin=0.0,divisor=1000,shapesize=2,facets="~annotator_accuracy~corpus", algorithm_colors=algorithm_colors, algorithm_shapes=algorithm_shapes,
                xbreaks = round(seq(min(d$num_annotations), max(d$num_annotations), by = 100),1),)
 #ggsave("../images/crossover-grid.png",width=75,height=50,units='cm')
+
+
+#####################
+# Presentation
+#####################
+# big grid for estimating crossover points 
+data = read.csv("naacl-2015-2.csv")
+mdata <- massageData(data)# rename 'varmomresp' -> 'momresp', 'varraykar' -> 'logresp'
+mdata$algorithm <- mapvalues(mdata$algorithm, from=c('varmomresp','varraykar','baseline','raykar','momresp_s'), to=c('MomResp','LogResp','Majority','LogResp+EM',"MomResp+Gibbs"))
+#d = mdata; d = d[which(d$corpus=="WEBKB" & d$annotator_accuracy=="HIGH"),]
+d = mdata; d = d[which(d$corpus=="NEWSGROUPS"),]
+d = mdata; d = d[which(d$corpus=="WEBKB"),]
+d = mdata; d = d[which(d$corpus=="R8"),]
+d = mdata; d = d[which(d$corpus=="R52"),]
+d = mdata; d = d[which(d$corpus=="CADE12"),]
+d = mdata; d = d[which(d$corpus=="ENRON"),]
+#d = mdata; d = d[which(d$corpus=="NEWSGROUPS" & d$annotator_accuracy=="CONFLICT"),]
+#d = mdata; d = d[which(d$d=="d = 1"),]
+plotAlgorithms(d,"labeled_acc","Crossover Grid",ymin=0.0,divisor=1000,shapesize=2,facets="~annotator_accuracy~corpus", algorithm_colors=algorithm_colors, algorithm_shapes=algorithm_shapes,
+               xbreaks = round(seq(min(d$num_annotations), max(d$num_annotations), by = 100),1),)
+#ggsave("../images/crossover-grid.png",width=75,height=50,units='cm')
