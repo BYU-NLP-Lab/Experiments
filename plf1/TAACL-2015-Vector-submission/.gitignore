@@ -4,3 +4,5 @@ results/
 all
 target/
 *.log
+*.RData
+*.Rhistory
