@@ -141,39 +141,8 @@ massageData <- function(dat){
   dat <- nameRows(dat, 'varitemresp_w2v', and(isLabelingStrategy('VARITEMRESP'), isOptimization, usesWord2VecVectors))
   dat <- nameRows(dat, 'varitemresp_d2v', and(isLabelingStrategy('VARITEMRESP'), isOptimization, usesDoc2VecVectors))
   
-  # neutered variants
-  dat <- nameRows(dat, 'momresp_s', and(isLabelingStrategy('MOMRESP'), not(isOptimization), not(usesVectors)))
-  dat <- nameRows(dat, 'momresp_m', and(isLabelingStrategy('MOMRESP'), isOptimization, not(usesVectors)))
-  dat <- nameRows(dat, 'varmomresp', and(isLabelingStrategy('VARMOMRESP'), isOptimization, not(usesVectors)))
-  dat <- nameRows(dat, 'varmomresp_w2v', and(isLabelingStrategy('VARMOMRESP'), isOptimization, usesWord2VecVectors))
-  dat <- nameRows(dat, 'varmomresp_d2v', and(isLabelingStrategy('VARMOMRESP'), isOptimization, usesDoc2VecVectors))
-  
-  # multiresp variants
-  dat <- nameRows(dat, 'multiresp_s', and(isLabelingStrategy('MULTIRESP'), not(isOptimization), not(usesVectors)))
-  dat <- nameRows(dat, 'multiresp_m', and(isLabelingStrategy('MULTIRESP'), isOptimization, not(usesVectors)))
-  dat <- nameRows(dat, 'varmultiresp', and(isLabelingStrategy('VARMULTIRESP'), isOptimization, not(usesVectors)))
-  
-  # logresp variants
-  dat <- nameRows(dat, 'logresp_st', and(isLabelingStrategy('LOGRESP_ST'), isOptimization, not(usesVectors))) # self training
-  dat <- nameRows(dat, 'logresp_m', and(isLabelingStrategy('LOGRESP'), isOptimization, not(usesVectors)))
-  dat <- nameRows(dat, 'varlogresp', and(isLabelingStrategy('VARLOGRESP'), isOptimization, not(usesVectors)))
-  dat <- nameRows(dat, 'varlogresp_w2v', and(isLabelingStrategy('VARLOGRESP'), isOptimization, usesWord2VecVectors))
-  dat <- nameRows(dat, 'varlogresp_d2v', and(isLabelingStrategy('VARLOGRESP'), isOptimization, usesDoc2VecVectors))
-  dat <- nameRows(dat, 'varlogresp_lda', and(isLabelingStrategy('VARLOGRESP'), isOptimization, usesLdaVectors))
-  
-  # cslda
-  dat <- nameRows(dat, 'cslda_s', and(isLabelingStrategy('CSLDA'), not(isOptimization), not(usesVectors)))
-  dat <- nameRows(dat, 'cslda', and(isLabelingStrategy('CSLDA'), isOptimization, not(usesVectors)))
-  dat <- nameRows(dat, 'cslda_lex_s', and(isLabelingStrategy('CSLDALEX'), not(isOptimization), not(usesVectors)))
-  dat <- nameRows(dat, 'cslda_lex', and(isLabelingStrategy('CSLDALEX'), isOptimization, not(usesVectors)))
-  dat <- nameRows(dat, 'cslda_p', and(isLabelingStrategy('CSLDAP'), isOptimization, not(usesVectors))) # pipelined
-  dat <- nameRows(dat, 'cslda_s_p', and(isLabelingStrategy('CSLDAP'), not(isOptimization))) # pipelined w sampler
-  
-  # fully discriminative 
-  dat <- nameRows(dat, 'discrim', and(isLabelingStrategy('DISCRIM'), isOptimization, not(usesLdaVectors)))
-  dat <- nameRows(dat, 'discrim_lda', and(isLabelingStrategy('DISCRIM'), isOptimization, usesLdaVectors))
-  dat <- nameRows(dat, 'discrim_d2v', and(isLabelingStrategy('DISCRIM'), isOptimization, usesDoc2VecVectors))
-  dat <- nameRows(dat, 'discrim_w2v', and(isLabelingStrategy('DISCRIM'), isOptimization, usesWord2VecVectors))
+  # PAN
+  dat <- nameRows(dat, 'pan', isLabelingStrategy('PAN'))
   
   # make 'algorithm' into factor 
   dat$algorithm <- factor(dat$algorithm)
@@ -197,24 +166,6 @@ massageData <- function(dat){
     dat[which(grepl("cfgroups1000",dat$basedir)),]$corpus <- "CFGROUPS1000"
   }
   
-  # combine twitterparaphrase,twitterparaphrase-w2v,twitterparaphrase-d2v
-  if (any(grepl("twitterparaphrase",dat$basedir))){
-    dat[which(grepl("twitterparaphrase",dat$basedir)),]$corpus <- "TWITTER_PARA"
-  }
-  
-  # combine twittersentiment,twittersentiment-w2v,twittersentiment-d2v
-  if (any(grepl("twittersentiment",dat$basedir))){
-    dat[which(grepl("twittersentiment",dat$basedir)),]$corpus <- "TWITTER_SENT"
-  }
-  
-  # combine compatibility experiments
-  if (any(grepl("twittersentiment",dat$basedir))){
-    dat[which(grepl("compatibility",dat$basedir)),]$corpus <- "COMPATIBILITY"
-  }
-  
-  # treat simplified cfgroups as its own corpus
-  dat$corpus[which(dat$dataset=="cfsimplegroups1000a.json")] <- "CFSIMPLEGROUPS"
-  
   # make 'corpus' into factor
   dat$corpus <- factor(dat$corpus)
   
@@ -225,6 +176,9 @@ massageData <- function(dat){
   if (!is.null(dat$num_annotators)){
     dat$num_annotators <- factor(dat$num_annotators)
   }
+
+  # bucket annotations (in case of a little jitter)
+  dat
   
   # rename k to 'd' and re-order
   require(plyr)
@@ -328,7 +282,7 @@ plotAlgorithms <- function(dat, yvarname, title, xvarname="num_documents_with_an
 # setup paths and packages
 #install.packages("ggplot2")
 require(ggplot2)
-setwd('/aml/home/plf1/git/Experiments/plf1/TAACL-2015-Vector-submission/csv')
+setwd('/aml/home/plf1/git/Experiments/plf1/TACL-2015-Measurements-submission/csv')
 
 
 # stop execution --- proceed manually
@@ -336,7 +290,7 @@ stop()
 
 # experiments with:
 # newsgroups, cfnewsgroups, weather, twittersentiment, twitterparaphrase, compatibility
-data = read.csv("2015-06-25-taacl.csv")
+data = read.csv("2015-08-20.csv")
 
 
 #########################################################
@@ -389,19 +343,21 @@ plotAlgorithms(j,"machacc_mat_rmse","Machine MAT RMSE")
 
 
 
-
-
 #############################################################################
-#         Enabling Crowdsourcing with document representations 2015
+#         Learning from Measuremnts in Crowdsourcing models 2015
 #############################################################################
 
 
-######################### newsgroups ###############################
-data = read.csv("2015-06-25-taacl.csv")
 
-levels=c('LogResp+w2v','LogResp','csLDA','MomResp','ItemResp','Majority') # determined line order in legend
-alg_colors=c('csLDA'='#00BEC4', 'Majority'="#000000", 'MomResp'="#B69E00", 'LogResp'="#609BFF", 'LogResp+w2v'="#F8766D", 'ItemResp'='#00B937')
-alg_shapes=c('csLDA'=3,         'Majority'=1,         'MomResp'=17,        'LogResp'=18,        'LogResp+w2v'=5,         'ItemResp'=6 ) 
+######################### newsgroups (simulated predicates and proportions) ###############################
+data = read.csv("2015-08-20.csv")
+mdata <- massageData(data);
+# eliminate jitter
+mdata$num_annotations <- floor(mdata$num_annotations/1000)*1000
+
+levels=c('PAN','IR','MV') # determined line order in legend
+alg_colors=c('PAN'='#F8766D', 'MV'="#000000", 'IR'="#609BFF")
+alg_shapes=c('PAN'=3,         'MV'=1,         'IR'=17) 
 width = 13
 height = 8
 ymin = 0.55
@@ -409,9 +365,7 @@ ymax = 1
 shapesize = 3
 xvarname = "num_annotations"
 # data
-mdata <- massageData(data);
-mdata <- mdata[which(mdata$algorithm=="varlogresp_w2v" | mdata$algorithm=="varlogresp" |  mdata$algorithm=="varmomresp" | mdata$algorithm=="cslda_s" | mdata$algorithm=="baseline"),]
-mdata$algorithm <- mapvalues(mdata$algorithm, from=c('baseline','varlogresp','varlogresp_w2v','cslda_s','varitemresp','varmomresp'), to=c('Majority','LogResp','LogResp+w2v','csLDA','ItemResp','MomResp')) # rename
+mdata$algorithm <- mapvalues(mdata$algorithm, from=c('baseline','varitemresp','pan'), to=c('MV','IR','PAN')) # rename
 mdata$algorithm <- factor(mdata$algorithm, levels=levels) # reorder
 plotty <- function(d,hide_legend=FALSE){
   plotAlgorithms(d,"labeled_acc","",xvarname=xvarname,ymin=ymin,ymax=ymax,facets="~corpus", shapesize=shapesize, algorithm_colors=alg_colors, algorithm_shapes=alg_shapes,
@@ -419,6 +373,9 @@ plotty <- function(d,hide_legend=FALSE){
 }
 plotty(mdata[which(mdata$corpus=="NEWSGROUPS"),])
 ggsave("../images/newsgroups.eps",width=width,height=height,units='cm')
+
+
+
 
 
 ######################### cfgroups1000 ###############################

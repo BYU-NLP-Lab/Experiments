@@ -36,6 +36,21 @@ num_classes = {
 depth = 7
 lowpoint = 200
 
+class ScaledValue():
+    def __init__(self,srcfield,scales):
+        self.srcfield=srcfield
+        self.scales=scales
+    def list_yield(self,thing):
+        if isinstance(thing,(list,tuple)):
+            for item in thing:
+                yield item
+        else:
+            yield thing 
+    def generator(self,keys,state):
+        assert self.srcfield in keys, "ScaledValue specified nonexistent source field %s"%self.srcfield
+        for scale in self.list_yield(self.scales):
+            yield int(round(scale * state[self.srcfield]))
+
 ######################################################
 #                   Helper Functions
 #####################################################
@@ -96,8 +111,9 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
     classpath = ['config','"target/dependency/*"'] 
     java = "java -Xmx{mem} -cp {classpath} {main}".format(mem=mem, classpath=':'.join(classpath), main=main)
     #javacommand = 'cd {cwd} && {java}'.format(cwd=os.getcwd(), java=java)
-    #cwd = "/local/plf1/git/Experiments/plf1/TACL-2015-Measurements-submission"
-    cwd = "/aml/home/plf1/git/Experiments/plf1/TACL-2015-Measurements-submission"
+    ##cwd = "/net/perplexity/plf1/git/Experiments/plf1/TACL-2015-Measurements-submission"
+    cwd = "/local/plf1/git/Experiments/plf1/TACL-2015-Measurements-submission"
+    #cwd = "/aml/home/plf1/git/Experiments/plf1/TACL-2015-Measurements-submission"
     javacommand = 'cd {cwd} && {java}'.format(cwd=cwd, java=java)
 
     num_evalpoints = 8
@@ -117,40 +133,10 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
 
         # dataset-related params
         ('--basedir',(
-            #'data/naivebayes-20',
-            #'data/multiresp-2.tgz',
-            #'data/cfsimplegroups1000a',
-            #'data/cfsimplegroups1000b',
-            #'data/cfsimplegroups1000c',
-            #'data/cfsimplegroups1000d',
-            #'%s/jsonbasedirs/twitterparaphrase-twit'%datadir,
-            #'%s/jsonbasedirs/twitterparaphrase-w2v'%datadir,
-            #'%s/jsonbasedirs/twitterparaphrase-d2v'%datadir,
-            #'%s/jsonbasedirs/twittersentiment-twit'%datadir,
-            #'%s/jsonbasedirs/twittersentiment-w2v'%datadir,
-            #'%s/jsonbasedirs/twittersentiment-d2v'%datadir,
-            #'%s/jsonbasedirs/compatibility-w2v'%datadir,
-            'data/newsgroups', # simulation results
-            'weather-preds', # real results
-            'weather-w2v', # location results
-            'cfgroups1000-w2v', # location results
-            #'%s/jsonbasedirs/weather'%datadir,
-            #'%s/jsonbasedirs/weather-w2v'%datadir,
-            #'%s/jsonbasedirs/weather-d2v'%datadir,
-            #'%s/jsonbasedirs/cfgroups1000'%datadir,
-            #'%s/jsonbasedirs/cfgroups1000-w2v'%datadir,
-            #'%s/jsonbasedirs/cfgroups1000-d2v'%datadir,
-            #'%s/jsonbasedirs/newsgroups'%datadir,
-            #'%s/jsonbasedirs/newsgroups-d2v'%datadir,
-            #'%s/jsonbasedirs/newsgroups-w2v'%datadir,
-            #'data/airlines-twit',
-            #'data/dredze-twit',
-            #'data/companies',
-            #'data/enron',
-            #'data/r8',
-            #'data/webkb',
-            #'data/cade12',
-            #'data/r52',
+            '%s/newsgroups'%datadir, # simulation results
+            #'weather-preds', # real results
+            #'weather-w2v', # location results
+            #'cfgroups1000-w2v', # location results
             )),
         ('--dataset-type', broom.Mapper('--basedir',{
             '.*newsgroups$':'NEWSGROUPS',
@@ -164,58 +150,29 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             '.*weather-w2v':'%s/weather/dataset/weather-w2v.json'%datadir,
             },default='full_set').generator),
         ('--eval-point', broom.Mapper('--basedir',{
-            '.*naivebayes-20':parabolic_points(lowpoint,data_size['newsgroups']*depth,num_evalpoints),
             '.*weath.*':parabolic_points(lowpoint,22000,num_evalpoints),
-            '.*newsgroups.*':parabolic_points(lowpoint,data_size['newsgroups']*depth,num_evalpoints),
-            '.*cfgroups1000':parabolic_points(lowpoint,10000,num_evalpoints),
-            '.*twitterparaphrase.*':parabolic_points(lowpoint,22000,num_evalpoints),
-            '.*twittersentiment.*':parabolic_points(lowpoint,6000,num_evalpoints),
-            '.*compatibility.*':parabolic_points(lowpoint,200000,num_evalpoints),
-            '.*dredze':parabolic_points(lowpoint,21000,num_evalpoints),
-            '.*cade12':parabolic_points(lowpoint,data_size['cade12']*depth,num_evalpoints),
-            '.*enron':parabolic_points(lowpoint,data_size['enron']*depth,num_evalpoints),
-            '.*r8':parabolic_points(lowpoint,data_size['r8']*depth,num_evalpoints),
-            '.*r52':parabolic_points(lowpoint,data_size['r52']*depth,num_evalpoints),
-            '.*webkb':parabolic_points(lowpoint,data_size['webkb']*depth,num_evalpoints),
+            '.*newsgroups$':parabolic_points(lowpoint,data_size['newsgroups']*depth,num_evalpoints),
+            '.*cfgroups1000-w2v':parabolic_points(lowpoint,10000,num_evalpoints),
             }).generator),
         ('--feature-normalization-constant',-1),
 
         # aggresive feature selection
-        ('--feature-count-cutoff',broom.Mapper('--dataset-type',{
-            'TWITTER': -1,
-            '.*_VEC': -1,
-            'WEATHER': -1,
-        }, default=5).generator),
+        ('--feature-count-cutoff',-1),
         #('--top-n-features-per-document',-1),
-        ('--top-n-features-per-document',broom.Mapper('--dataset-type',{
-            'COMPANIES': 3,
-        }, default=-1).generator),
-
+        ('--top-n-features-per-document',-1),
         # annotations
         ('--annotation-strategy', broom.Mapper('--basedir',{
             '.*newsgroups$':'grr',
             '.*cfgroups1000-w2v':'reallayers',
             '.*weather.*':'reallayers',
-            #'weath':'reallayers',
-            '.*airlines':'reallayers',
-            '.*companies':'reallayers',
-            '.*cfgroups1000':'real',
-            '.*twitterparaphrase*':'real',
-            '.*twittersentiment*':'reallayers',
-            '.*compatibility*':'reallayers',
-            #}, default='grr').generator),
-            }, default='kdeep').generator),
+            }).generator),
         ('--annotator-accuracy', broom.Mapper('--basedir',{
             '.*newsgroups.*':"MED",
             '.*cfgroups1000.*':None,
-            '.*twitter.*':None,
-            '.*dredze':None,
             '.*weath.*':None,
-            '.*airlines':None,
-            '.*companies':None,
             #'kdeep':("FILE","LOW","EXPERT","CONFLICT"),
             #'kdeep':("HIGH","MED","LOW","CONFLICT"),
-            }, default=("CFBETA")).generator),
+            }).generator),
         ('--annotator-file', broom.Mapper('--annotator-accuracy',{
             'FILE':"annotators/all",
             #'FILE':("annotators/all","annotators/kmeans-5","annotators/kmeans-20"),
@@ -229,10 +186,19 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
         ('--num-observed-labels',0),
 
         # inference #('---strategy',['MOMRESP']), #('--labeling-strategy',['LOGRESP','VARLOGRESP']), 
-        ('--labeling-strategy',broom.Mapper('--basedir',{
-            '.*compatibility-w2v$': ('UBASELINE','VARITEMRESP','VARLOGRESP','DISCRIM'), # has no suitable lexical representation, so we only eval w2v
-            '.*(?<!compatibility)-[wd]2v$': ('VARLOGRESP','DISCRIM'), # catch all the other w2v,d2v cases (momresp,cslda, make no sense here)
-        },default=['UBASELINE','CSLDA','CSLDAP','CSLDALEX','DISCRIM','VARMOMRESP','VARLOGRESP','VARITEMRESP']).generator), 
+        ('--labeling-strategy',('UBASELINE','VARITEMRESP','PAN')),
+        ('--add-trusted-uniform-class-measurements', broom.Mapper('--labeling-strategy',{
+            'PAN': '',
+        },default=None).generator),
+        #('--labeling-strategy',broom.Mapper('--basedir',{
+        #    '.*compatibility-w2v$': ('UBASELINE','VARITEMRESP','VARLOGRESP','DISCRIM'), # has no suitable lexical representation, so we only eval w2v
+        #    '.*(?<!compatibility)-[wd]2v$': ('VARLOGRESP','DISCRIM'), # catch all the other w2v,d2v cases (momresp,cslda, make no sense here)
+        ('--meas-eval-point', broom.Mapper('--basedir',{
+            '.*newsgroups$':(0,5000,10000),
+            '.*cfgroups1000-w2v':5000,
+            '.*weather.*':1e20, # use all available
+        }).generator),
+        #},default=['UBASELINE','CSLDA','CSLDAP','CSLDALEX','DISCRIM','VARMOMRESP','VARLOGRESP','VARITEMRESP']).generator), 
         #},default=['UBASELINE','CSLDA','CSLDAP','CSLDALEX','DISCRIM','VARMOMRESP','VARLOGRESP','VARITEMRESP']).generator), 
         ('--initialization-strategy','BASELINE'),
         ('--training','maximize-all'),
@@ -331,7 +297,7 @@ if __name__ == "__main__":
     print '= first %d jobs' % headn
     print '============================================'
     total = 0
-    for i,job in enumerate(jobs(firstexperiment,outdir,'topic_vectors',"4g")):
+    for i,job in enumerate(jobs(firstexperiment,outdir,'topic_vectors',"16g")):
         if i<=headn:
             print 
             print job
