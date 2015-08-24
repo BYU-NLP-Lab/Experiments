@@ -458,4 +458,40 @@ ggsave("../images/weather-loclabels.eps",width=width,height=height,units='cm')
 
 
 
+######################### weather-activemeas ###############################
+data = read.csv("2015-08-24-weather-activemeas.csv")
+#mdata <- massageData(data);
+# make an x axis that consist of max(eval_point,meas_eval_point) because we sweep eval_point for MV and IR and meas_eval_point for PAN
+# mdata$effective_eval_point <- ifelse(mdata$algorithm=="pan", mdata$meas_eval_point, mdata$eval_point)
+
+data$total_meas <- data$num_annotations + data$num_measurements
+data = data[which(data$total_meas<=16000),]
+al <- data[which(is.na(as.character(data$active_strategy))),]
+rand <- data[which(as.character(data$active_strategy)=="RAND"),]
+
+
+
+ggplot() +
+  # Active measurement line
+  geom_line(aes(al$total_meas, al$labeled_acc), size=1, colour="#F8766D", linetype=1, al) +
+  # Rand line
+  geom_line(aes(rand$total_meas, rand$labeled_acc), size=1, colour="#000000", linetype=2, rand) +
+  ylab("Inferred Label Accuracy") + 
+  xlab("Number of Measurements") +
+  ylim(0.68,1) +
+  #ggtitle("") +
+  #scale_x_continuous(labels=xformatter) +
+  #scale_x_continuous(labels=xformatter, breaks = xbreaks) +
+  #theme(legend.position='none') +
+  #scale_x_continuous(limits=xlim,labels=xformatter) +
+  #theme(plot.title = element_text(lineheight=1.8,face='bold')) +
+  theme_bw() 
+
+# save plot
+width = 13
+height = 8
+ggsave("../images/weather-activemeas.eps",width=width,height=height,units='cm')
+
+
+
 
