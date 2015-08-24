@@ -473,9 +473,12 @@ rand <- data[which(as.character(data$active_strategy)=="RAND"),]
 
 ggplot() +
   # Active measurement line
-  geom_line(aes(al$total_meas, al$labeled_acc), size=1, colour="#F8766D", linetype=1, al) +
+  geom_line(aes(al$total_meas, al$labeled_acc, colour="ACTIVE"), size=1, linetype=1, al) +
   # Rand line
-  geom_line(aes(rand$total_meas, rand$labeled_acc), size=1, colour="#000000", linetype=2, rand) +
+  geom_line(aes(rand$total_meas, rand$labeled_acc, colour="RAND"), size=1, linetype=2, rand) +
+  scale_colour_manual("", 
+                      breaks = c("ACTIVE", "RAND"),
+                      values = c("#F8766D", "#000000")) +
   ylab("Inferred Label Accuracy") + 
   xlab("Number of Measurements") +
   ylim(0.68,1) +
