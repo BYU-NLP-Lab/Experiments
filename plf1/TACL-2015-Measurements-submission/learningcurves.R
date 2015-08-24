@@ -48,12 +48,19 @@ summarySE <- function(dataframe=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
 }
 
 isOptimization <- function(dat){
-  return(grepl("maximize", dat$training))
+  grepl("maximize", dat$training)
 }
 
 hasHyperTuning <- function(tuningMethod){
   function(dat){
-    return(grepl(tuningMethod, dat$hyperparam_training))
+    grepl(tuningMethod, dat$hyperparam_training)
+  }
+}
+
+
+basedirMatches <- function(pattern){
+  function(dat){
+    grepl(pattern,dat$basedir)
   }
 }
 
@@ -75,21 +82,34 @@ usesDoc2VecVectors <- function(dat){
 
 hasNumMeasurements <- function(num_meas){
   function(dat){
-    return(dat$meas_eval_point==num_meas)
+    dat$meas_eval_point==num_meas
   }
 }
 
 isLabelingStrategy <- function(labeling_strategy){
   function(dat){
     desiredLabelingStrategy <- if(is.null(labeling_strategy)) dat$labeling_strategy else labeling_strategy
-    return(dat$labeling_strategy==desiredLabelingStrategy)
+    dat$labeling_strategy==desiredLabelingStrategy
   }
 }
 
 not <- function(f){
   function(dat){
-    return(!f(dat))
+    !f(dat)
   } 
+}
+
+or <- function(...){
+  function(dat){
+    criteria <- list(...)
+    # start with everything matched
+    matchedRows <- rep(TRUE,dim(dat)[1])
+    # intersection of rows that match each criterion
+    for (criterion in criteria){
+      matchedRows <- matchedRows | criterion(dat)
+    }
+    return(matchedRows)
+  }
 }
 
 and <- function(...){
@@ -150,7 +170,9 @@ massageData <- function(dat){
   # PAN
   dat <- nameRows(dat, 'pan10', and(isLabelingStrategy('PAN'), hasNumMeasurements(10000)))
   dat <- nameRows(dat, 'pan5', and(isLabelingStrategy('PAN'), hasNumMeasurements(5000)))
+  dat <- nameRows(dat, 'pan2', and(isLabelingStrategy('PAN'), hasNumMeasurements(2000)))
   dat <- nameRows(dat, 'pan', and(isLabelingStrategy('PAN'), hasNumMeasurements(0)))
+  # dat <- nameRows(dat, 'pan', and(isLabelingStrategy('PAN'), or(hasNumMeasurements(0), basedirMatches(".*loclabels.*"))))
   
   # make 'algorithm' into factor 
   dat$algorithm <- factor(dat$algorithm)
@@ -358,17 +380,17 @@ plotAlgorithms(j,"machacc_mat_rmse","Machine MAT RMSE")
 
 
 ######################### newsgroups (simulated predicates and real proportions) ###############################
-data = read.csv("2015-08-20.csv")
+data = read.csv("2015-08-20-newsgroupssim.csv")
 mdata <- massageData(data);
 # eliminate jitter
-mdata$num_annotations <- floor(mdata$num_annotations/1000)*1000
+mdata$num_annotations <- floor(mdata$num_annotations/5000)*5000
 
 levels=c('PAN10','PAN5','PAN','IR','MV') # determined line order in legend
-alg_colors=c('PAN10'='#B69E00', 'PAN5'='#00BEC4', 'PAN'='#F8766D', 'MV'="#000000", 'IR'="#609BFF")
+alg_colors=c('PAN10'='#F8766D', 'PAN5'='#00BEC4', 'PAN'='#B69E00', 'MV'="#000000", 'IR'="#609BFF")
 alg_shapes=c('PAN10'=5,         'PAN5'=18,        'PAN'=3,         'MV'=1,         'IR'=17)
 width = 13
-height = 8
-ymin = 0.
+height = 9
+ymin = 0.57
 ymax = 1
 shapesize = 3
 xvarname = "num_annotations"
@@ -384,29 +406,55 @@ ggsave("../images/newsgroups.eps",width=width,height=height,units='cm')
 
 
 ######################### weather-preds (real predicates and manual proportions) ###############################
-data = read.csv("2015-08-20-2.csv")
+data = read.csv("2015-08-20-weatherreal.csv")
 mdata <- massageData(data);
-# eliminate jitter
-mdata$num_annotations <- floor(mdata$num_annotations/1000)*1000
 
-levels=c('PAN','IR','MV') # determined line order in legend
-alg_colors=c('PAN'='#F8766D', 'MV'="#000000", 'IR'="#609BFF")
-alg_shapes=c('PAN'=3,         'MV'=1,         'IR'=17)
+levels=c('PAN2','PAN','IR','MV') # determined line order in legend
+alg_colors=c('PAN2'='#F8766D', 'PAN5'='#00BEC4', 'PAN'='#B69E00', 'MV'="#000000", 'IR'="#609BFF")
+alg_shapes=c('PAN2'=5,         'PAN5'=18,        'PAN'=3,         'MV'=1,         'IR'=17)
 width = 13
 height = 8
-ymin = 0.
+ymin = 0.55
 ymax = 1
 shapesize = 3
 xvarname = "num_annotations"
 # data
-mdata$algorithm <- mapvalues(mdata$algorithm, from=c('baseline','varitemresp','pan10'), to=c('MV','IR','PAN')) # rename
+mdata$algorithm <- mapvalues(mdata$algorithm, from=c('baseline','varitemresp','pan10','pan'), to=c('MV','IR','PAN2','PAN')) # rename
 mdata$algorithm <- factor(mdata$algorithm, levels=levels) # reorder
 plotty <- function(d,hide_legend=FALSE){
   plotAlgorithms(d,"labeled_acc","",xvarname=xvarname,ymin=ymin,ymax=ymax,facets="~corpus", shapesize=shapesize, algorithm_colors=alg_colors, algorithm_shapes=alg_shapes,
                  hide_legend=hide_legend,xlabel="Number of annotations x 1,000")
 }
 plotty(mdata[which(mdata$corpus=="WEATHER"),])
-ggsave("../images/newsgroups.eps",width=width,height=height,units='cm')
+ggsave("../images/weather-preds.eps",width=width,height=height,units='cm')
+
+
+
+
+######################### weather-loclabels (real predicates and manual proportions) ###############################
+data = read.csv("2015-08-20-weather-loclabels.csv")
+mdata <- massageData(data);
+# make an x axis that consist of max(eval_point,meas_eval_point) because we sweep eval_point for MV and IR and meas_eval_point for PAN
+# mdata$effective_eval_point <- ifelse(mdata$algorithm=="pan", mdata$meas_eval_point, mdata$eval_point)
+
+levels=c('PAN+LOC','PAN','IR','MV') # determined line order in legend
+alg_colors=c('PAN+LOC'='#00B937', 'PAN5'='#00BEC4', 'PAN'='#B69E00', 'MV'="#000000", 'IR'="#609BFF")
+alg_shapes=c('PAN+LOC'=6,         'PAN5'=18,        'PAN'=3,         'MV'=1,         'IR'=17)
+width = 13
+height = 8
+ymin = 0.55
+ymax = 1
+shapesize = 3
+xvarname = "num_annotations"
+# data
+mdata$algorithm <- mapvalues(mdata$algorithm, from=c('baseline','varitemresp','pan2'), to=c('MV','IR','PAN+LOC')) # rename
+mdata$algorithm <- factor(mdata$algorithm, levels=levels) # reorder
+plotty <- function(d,hide_legend=FALSE){
+  plotAlgorithms(d,"labeled_acc","",xvarname=xvarname,ymin=ymin,ymax=ymax,facets="~corpus", shapesize=shapesize, algorithm_colors=alg_colors, algorithm_shapes=alg_shapes,
+                 hide_legend=hide_legend,xlabel="Number of annotations x 1,000")
+}
+plotty(mdata[which(mdata$corpus=="WEATHER"),])
+ggsave("../images/weather-loclabels.eps",width=width,height=height,units='cm')
 
 
 

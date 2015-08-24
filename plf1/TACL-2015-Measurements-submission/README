@@ -16,3 +16,22 @@ ssh_submit.py
     ./ssh_submit.py -n potatos -o out -r results/tst --stage=2
     Dry run with simulated errors:
     ./ssh_submit.py --test -n potatos -o out -r results/tst --stage=2 -c
+
+`mvn clean dependency:copy-dependencies; ./distribute.ssh potatos`
+    copies all datasets and experiments to all potatos that jobs will be run on. do this prior to ssh_submit and after every time you change the maven artifacts referred to by the pom.xml
+
+To generate simulated newsgroups results
+# link multiann.py to multiann-newsgroups-simulation.py 
+`rm multiann.py; ln -s multiann-newsgroups-simulation.py multiann.py`
+`./ssh_submit.py -n potatos -o /tmp/out0820 -r /local/plf1/git/Experiments/plf1/TACL-2015-Measurements-submission/results/2015-08-20`
+`./gather.sh potatos results/2015-08-20-newsgroupssim; ./cleanup.sh results/2015-08-20-newsgroupssim/; ./aggregate.sh results/2015-08-20-newsgroupssim > csv/2015-08-20-newsgroupssim.csv`
+
+To generate the weather-preds results with real annotation order:
+`rm multiann.py; ln -s multiann-weather-preds.py multiann.py`
+`./ssh_submit.py  -n potatos -o /tmp/out0820-weatherreal -r /local/plf1/git/Experiments/plf1/TACL-2015-Measurements-submission/results/2015-08-20-weatherreal`
+`./gather.sh potatos results/2015-08-20-weatherreal; ./cleanup.sh results/2015-08-20-weatherreal/; ./aggregate.sh results/2015-08-20-weatherreal > csv/2015-08-20-weatherreal.csv`
+
+To generate the weather results using labeled location measurements:
+`rm multiann.py; ln -s multiann-weather-loclabels.py multiann.py`
+`./ssh_submit.py  -n potatos -o /tmp/out0820-weather-loclabels -r /local/plf1/git/Experiments/plf1/TACL-2015-Measurements-submission/results/2015-08-20-weather-loclabels`
+`./gather.sh potatos results/2015-08-20-weather-loclabels; ./cleanup.sh results/2015-08-20-weather-loclabels/; ./aggregate.sh results/2015-08-20-weather-loclabels > csv/2015-08-20-weather-loclabels.csv`
