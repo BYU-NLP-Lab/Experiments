@@ -98,15 +98,15 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
     classpath = ['config','"target/dependency/*"'] 
     java = "java -Xmx{mem} -cp {classpath} {main}".format(mem=mem, classpath=':'.join(classpath), main=main)
     #javacommand = 'cd {cwd} && {java}'.format(cwd=os.getcwd(), java=java)
-    cwd = "/net/perplexity/plf1/git/Experiments/plf1/devel"
-    #cwd = "/local/plf1/git/Experiments/plf1/devel"
+    #cwd = "/net/perplexity/plf1/git/Experiments/plf1/cslda-paper"
+    cwd = "/local/plf1/git/Experiments/plf1/cslda-paper"
     javacommand = 'cd {cwd} && {java}'.format(cwd=cwd, java=java)
 
     num_evalpoints = 8
     repeats = 5
     chains = 1 # TODO: consider more for sampling runs
-    datadir = "/net/perplexity/plf1/data"
-    #datadir = "/local/plf1/data"
+    #datadir = "/net/perplexity/plf1/data"
+    datadir = "/local/plf1/data"
 
     # sweep parameters
     cwd = os.getcwd()
@@ -131,14 +131,14 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             #'%s/jsonbasedirs/twittersentiment-twit'%datadir,
             #'%s/jsonbasedirs/twittersentiment-w2v'%datadir,
             #'%s/jsonbasedirs/twittersentiment-d2v'%datadir,
-            #'%s/jsonbasedirs/compatibility-w2v'%datadir,
+            '%s/jsonbasedirs/compatibility-w2v'%datadir,
             #'%s/jsonbasedirs/weather'%datadir,
             #'%s/jsonbasedirs/weather-w2v'%datadir,
             #'%s/jsonbasedirs/weather-d2v'%datadir,
             #'%s/jsonbasedirs/cfgroups1000'%datadir,
             #'%s/jsonbasedirs/cfgroups1000-w2v'%datadir,
             #'%s/jsonbasedirs/cfgroups1000-d2v'%datadir,
-            '%s/jsonbasedirs/newsgroups'%datadir,
+            #'%s/jsonbasedirs/newsgroups'%datadir,
             #'%s/jsonbasedirs/newsgroups-d2v'%datadir,
             #'%s/jsonbasedirs/newsgroups-w2v'%datadir,
             #'data/airlines-twit',

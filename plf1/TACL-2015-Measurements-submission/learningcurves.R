@@ -399,7 +399,7 @@ mdata$algorithm <- mapvalues(mdata$algorithm, from=c('baseline','varitemresp','p
 mdata$algorithm <- factor(mdata$algorithm, levels=levels) # reorder
 plotty <- function(d,hide_legend=FALSE){
   plotAlgorithms(d,"labeled_acc","",xvarname=xvarname,ymin=ymin,ymax=ymax,facets="~corpus", shapesize=shapesize, algorithm_colors=alg_colors, algorithm_shapes=alg_shapes,
-                 hide_legend=hide_legend,xlabel="Number of annotations x 1,000")
+                 hide_legend=hide_legend,xlabel="Number of document labels x 1,000")
 }
 plotty(mdata[which(mdata$corpus=="NEWSGROUPS"),])
 ggsave("../images/newsgroups.eps",width=width,height=height,units='cm')
@@ -423,7 +423,7 @@ mdata$algorithm <- mapvalues(mdata$algorithm, from=c('baseline','varitemresp','p
 mdata$algorithm <- factor(mdata$algorithm, levels=levels) # reorder
 plotty <- function(d,hide_legend=FALSE){
   plotAlgorithms(d,"labeled_acc","",xvarname=xvarname,ymin=ymin,ymax=ymax,facets="~corpus", shapesize=shapesize, algorithm_colors=alg_colors, algorithm_shapes=alg_shapes,
-                 hide_legend=hide_legend,xlabel="Number of annotations x 1,000")
+                 hide_legend=hide_legend,xlabel="Number of document labels x 1,000")
 }
 plotty(mdata[which(mdata$corpus=="WEATHER"),])
 ggsave("../images/weather-preds.eps",width=width,height=height,units='cm')
@@ -451,7 +451,7 @@ mdata$algorithm <- mapvalues(mdata$algorithm, from=c('baseline','varitemresp','p
 mdata$algorithm <- factor(mdata$algorithm, levels=levels) # reorder
 plotty <- function(d,hide_legend=FALSE){
   plotAlgorithms(d,"labeled_acc","",xvarname=xvarname,ymin=ymin,ymax=ymax,facets="~corpus", shapesize=shapesize, algorithm_colors=alg_colors, algorithm_shapes=alg_shapes,
-                 hide_legend=hide_legend,xlabel="Number of annotations x 1,000")
+                 hide_legend=hide_legend,xlabel="Number of document labels x 1,000")
 }
 plotty(mdata[which(mdata$corpus=="WEATHER"),])
 ggsave("../images/weather-loclabels.eps",width=width,height=height,units='cm')
@@ -465,10 +465,10 @@ data = read.csv("2015-08-24-weather-activemeas.csv")
 # mdata$effective_eval_point <- ifelse(mdata$algorithm=="pan", mdata$meas_eval_point, mdata$eval_point)
 
 data$total_meas <- data$num_annotations + data$num_measurements
-data = data[which(data$total_meas<=16000),]
+data = data[which(data$total_meas<=17000),]
+data$total_meas <- data$total_meas/ 1000
 al <- data[which(is.na(as.character(data$active_strategy))),]
 rand <- data[which(as.character(data$active_strategy)=="RAND"),]
-
 
 
 ggplot() +
@@ -479,8 +479,8 @@ ggplot() +
   scale_colour_manual("", 
                       breaks = c("ACTIVE", "RAND"),
                       values = c("#F8766D", "#000000")) +
-  ylab("Inferred Label Accuracy") + 
-  xlab("Number of Measurements") +
+  ylab("Accuracy") + 
+  xlab("Number of measurements x 1,000") +
   ylim(0.68,1) +
   #ggtitle("") +
   #scale_x_continuous(labels=xformatter) +

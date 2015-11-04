@@ -98,15 +98,15 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
     classpath = ['config','"target/dependency/*"'] 
     java = "java -Xmx{mem} -cp {classpath} {main}".format(mem=mem, classpath=':'.join(classpath), main=main)
     #javacommand = 'cd {cwd} && {java}'.format(cwd=os.getcwd(), java=java)
-    cwd = "/net/perplexity/plf1/git/Experiments/plf1/devel"
-    #cwd = "/local/plf1/git/Experiments/plf1/devel"
+    #cwd = "/net/perplexity/plf1/git/Experiments/plf1/TACL-2015-Vector-submission"
+    cwd = "/local/plf1/git/Experiments/plf1/TACL-2015-Vector-submission"
     javacommand = 'cd {cwd} && {java}'.format(cwd=cwd, java=java)
 
-    num_evalpoints = 8
-    repeats = 5
+    num_evalpoints = 1000
+    repeats = 1
     chains = 1 # TODO: consider more for sampling runs
-    datadir = "/net/perplexity/plf1/data"
-    #datadir = "/local/plf1/data"
+    #datadir = "/net/perplexity/plf1/data"
+    datadir = "/local/plf1/data"
 
     # sweep parameters
     cwd = os.getcwd()
@@ -126,7 +126,7 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             #'data/cfsimplegroups1000c',
             #'data/cfsimplegroups1000d',
             #'%s/jsonbasedirs/twitterparaphrase-twit'%datadir,
-            #'%s/jsonbasedirs/twitterparaphrase-w2v'%datadir,
+            '%s/jsonbasedirs/twitterparaphrase-w2v'%datadir,
             #'%s/jsonbasedirs/twitterparaphrase-d2v'%datadir,
             #'%s/jsonbasedirs/twittersentiment-twit'%datadir,
             #'%s/jsonbasedirs/twittersentiment-w2v'%datadir,
@@ -138,7 +138,7 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             #'%s/jsonbasedirs/cfgroups1000'%datadir,
             #'%s/jsonbasedirs/cfgroups1000-w2v'%datadir,
             #'%s/jsonbasedirs/cfgroups1000-d2v'%datadir,
-            '%s/jsonbasedirs/newsgroups'%datadir,
+            #'%s/jsonbasedirs/newsgroups'%datadir,
             #'%s/jsonbasedirs/newsgroups-d2v'%datadir,
             #'%s/jsonbasedirs/newsgroups-w2v'%datadir,
             #'data/airlines-twit',
@@ -189,21 +189,7 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             '.*dredze':'/aml/data/plf1/dredze/derived/1v0.json',
             },default='full_set').generator),
         ('--eval-point', broom.Mapper('--basedir',{
-            '.*naivebayes-20':parabolic_points(lowpoint,data_size['newsgroups']*depth,num_evalpoints),
-            '.*weath.*':parabolic_points(lowpoint,22000,num_evalpoints),
-            '.*airlines':parabolic_points(lowpoint,65000,num_evalpoints),
-            '.*companies':parabolic_points(lowpoint,30000,num_evalpoints),
-            '.*newsgroups.*':parabolic_points(lowpoint,data_size['newsgroups']*depth,num_evalpoints),
-            '.*cfgroups1000':parabolic_points(lowpoint,10000,num_evalpoints),
-            '.*twitterparaphrase.*':parabolic_points(lowpoint,22000,num_evalpoints),
-            '.*twittersentiment.*':parabolic_points(lowpoint,6000,num_evalpoints),
-            '.*compatibility.*':parabolic_points(lowpoint,200000,num_evalpoints),
-            '.*dredze':parabolic_points(lowpoint,21000,num_evalpoints),
-            '.*cade12':parabolic_points(lowpoint,data_size['cade12']*depth,num_evalpoints),
-            '.*enron':parabolic_points(lowpoint,data_size['enron']*depth,num_evalpoints),
-            '.*r8':parabolic_points(lowpoint,data_size['r8']*depth,num_evalpoints),
-            '.*r52':parabolic_points(lowpoint,data_size['r52']*depth,num_evalpoints),
-            '.*webkb':parabolic_points(lowpoint,data_size['webkb']*depth,num_evalpoints),
+            '.*twitterparaphrase.*':range(0,22000,10),
             }).generator),
         ('--feature-normalization-constant',broom.Mapper('--basedir',{
             '.*dredze':20,
@@ -278,12 +264,7 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
         #    '.*cfgroups1000':None
         #}, default=10).generator),
 
-        # inference #('--labeling-strategy',['MOMRESP']), #('--labeling-strategy',['LOGRESP','VARLOGRESP']), 
-        ('--labeling-strategy',broom.Mapper('--basedir',{
-            '.*compatibility-w2v$': ('UBASELINE','VARITEMRESP','VARLOGRESP','DISCRIM'), # has no suitable lexical representation, so we only eval w2v
-            '.*(?<!compatibility)-[wd]2v$': ('VARLOGRESP','DISCRIM'), # catch all the other w2v,d2v cases (momresp,cslda, make no sense here)
-        },default=['UBASELINE','CSLDA','CSLDAP','CSLDALEX','DISCRIM','VARMOMRESP','VARLOGRESP','VARITEMRESP']).generator), 
-        #},default=['UBASELINE','CSLDA','CSLDAP','CSLDALEX','DISCRIM','VARMOMRESP','VARLOGRESP','VARITEMRESP']).generator), 
+        ('--labeling-strategy','VARLOGRESP'),
         ('--initialization-strategy','BASELINE'),
         ('--num-topics',broom.Mapper('--basedir',{
             '.*naivebayes-20': int(round(1.5*num_classes['newsgroups'])),
@@ -383,7 +364,7 @@ def jobs(first_experiment, results_dir, topics_dir, mem):
             }, default=range(1,1+chains)).generator),
         # output files
         ('--results-file',FileNamer(results_dir,'results').generator),
-        #('--serialize-to-file',FileNamer(results_dir,'vars').generator),
+        ('--serialize-to-file',FileNamer(results_dir,'vars').generator),
         #('--debug-file',FileNamer(results_dir,'settings').generator),
         #('--tabular-file',FileNamer(results_dir,'tab').generator),
 
