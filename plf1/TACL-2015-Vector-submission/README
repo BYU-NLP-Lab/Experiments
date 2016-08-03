@@ -16,3 +16,9 @@ ssh_submit.py
     ./ssh_submit.py -n potatos -o out -r results/tst --stage=2
     Dry run with simulated errors:
     ./ssh_submit.py --test -n potatos -o out -r results/tst --stage=2 -c
+
+
+# to generate featureanalysis results
+rm multiann.py; ln -s multiann-featureanalysis.py multiann.py
+./ssh_submit.py  -n potatos -o /tmp/out0825-featureananalysis -r /local/plf1/git/Experiments/plf1/TACL-2015-Vector-submission/results/2015-08-25-featureanalysis
+./gather.sh potatos results/2015-08-25-featureanalysis; ./cleanup.sh results/2015-08-25-featureanalysis/; python ~/git/utils/mycsv/append.py results/2015-08-25-featureanalysis/*var* > csv/2015-08-25-featureanalysis.csv

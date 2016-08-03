@@ -9,12 +9,12 @@ fi
 for f in `cat $1 | sort | uniq`; do
   echo "copying Experiments to $f:/local/plf1/git/Experiments"
   ssh $f "mkdir -p /local/plf1/git"
-  rsync -Paz /local/plf1/git/Experiments $f:/local/plf1/git/
+  rsync -Paz --delete /local/plf1/git/Experiments $f:/local/plf1/git/
 done
 
-# copy data directories over
-for f in `cat $1 | sort | uniq`; do
-  echo "copying data to $f:/local/plf1/data"
-  rsync -Paz /local/plf1/data $f:/local/plf1/
-done
+## copy data directories over
+#for f in `cat $1 | sort | uniq`; do
+#  echo "copying data to $f:/local/plf1/data"
+#  rsync -Paz --delete /local/plf1/data $f:/local/plf1/
+#done
 

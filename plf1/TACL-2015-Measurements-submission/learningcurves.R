@@ -399,7 +399,7 @@ mdata$algorithm <- mapvalues(mdata$algorithm, from=c('baseline','varitemresp','p
 mdata$algorithm <- factor(mdata$algorithm, levels=levels) # reorder
 plotty <- function(d,hide_legend=FALSE){
   plotAlgorithms(d,"labeled_acc","",xvarname=xvarname,ymin=ymin,ymax=ymax,facets="~corpus", shapesize=shapesize, algorithm_colors=alg_colors, algorithm_shapes=alg_shapes,
-                 hide_legend=hide_legend,xlabel="Number of annotations x 1,000")
+                 hide_legend=hide_legend,xlabel="Number of document labels x 1,000")
 }
 plotty(mdata[which(mdata$corpus=="NEWSGROUPS"),])
 ggsave("../images/newsgroups.eps",width=width,height=height,units='cm')
@@ -423,7 +423,7 @@ mdata$algorithm <- mapvalues(mdata$algorithm, from=c('baseline','varitemresp','p
 mdata$algorithm <- factor(mdata$algorithm, levels=levels) # reorder
 plotty <- function(d,hide_legend=FALSE){
   plotAlgorithms(d,"labeled_acc","",xvarname=xvarname,ymin=ymin,ymax=ymax,facets="~corpus", shapesize=shapesize, algorithm_colors=alg_colors, algorithm_shapes=alg_shapes,
-                 hide_legend=hide_legend,xlabel="Number of annotations x 1,000")
+                 hide_legend=hide_legend,xlabel="Number of document labels x 1,000")
 }
 plotty(mdata[which(mdata$corpus=="WEATHER"),])
 ggsave("../images/weather-preds.eps",width=width,height=height,units='cm')
@@ -451,7 +451,7 @@ mdata$algorithm <- mapvalues(mdata$algorithm, from=c('baseline','varitemresp','p
 mdata$algorithm <- factor(mdata$algorithm, levels=levels) # reorder
 plotty <- function(d,hide_legend=FALSE){
   plotAlgorithms(d,"labeled_acc","",xvarname=xvarname,ymin=ymin,ymax=ymax,facets="~corpus", shapesize=shapesize, algorithm_colors=alg_colors, algorithm_shapes=alg_shapes,
-                 hide_legend=hide_legend,xlabel="Number of annotations x 1,000")
+                 hide_legend=hide_legend,xlabel="Number of document labels x 1,000")
 }
 plotty(mdata[which(mdata$corpus=="WEATHER"),])
 ggsave("../images/weather-loclabels.eps",width=width,height=height,units='cm')
@@ -471,7 +471,6 @@ data = data[which(data$total_meas<=16000),]
 al1 <- data[which(is.na(as.character(data$active_strategy))),]
 al2 <- data[which(as.character(data$active_strategy)=="AL"),]
 rand <- data[which(as.character(data$active_strategy)=="RAND"),]
-
 
 
 ggplot() +
