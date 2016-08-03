@@ -459,26 +459,30 @@ ggsave("../images/weather-loclabels.eps",width=width,height=height,units='cm')
 
 
 ######################### weather-activemeas ###############################
-data = read.csv("2015-08-24-weather-activemeas.csv")
+data = read.csv("2015-08-24-weather-activemeas-active-25-10+rand.csv")
+data = read.csv("2015-08-24-weather-activemeas-active-100-5+rand.csv")
+data = read.csv("2015-08-24-weather-activemeas-all.csv")
 #mdata <- massageData(data);
 # make an x axis that consist of max(eval_point,meas_eval_point) because we sweep eval_point for MV and IR and meas_eval_point for PAN
 # mdata$effective_eval_point <- ifelse(mdata$algorithm=="pan", mdata$meas_eval_point, mdata$eval_point)
 
 data$total_meas <- data$num_annotations + data$num_measurements
 data = data[which(data$total_meas<=16000),]
-al <- data[which(is.na(as.character(data$active_strategy))),]
+al1 <- data[which(is.na(as.character(data$active_strategy))),]
+al2 <- data[which(as.character(data$active_strategy)=="AL"),]
 rand <- data[which(as.character(data$active_strategy)=="RAND"),]
 
 
 
 ggplot() +
   # Active measurement line
-  geom_line(aes(al$total_meas, al$labeled_acc, colour="ACTIVE"), size=1, linetype=1, al) +
+  geom_line(aes(al$total_meas, al$labeled_acc, colour="ACTIVE-25"), size=1, linetype=3, al1) +
+  geom_line(aes(al$total_meas, al$labeled_acc, colour="ACTIVE-100"), size=1, linetype=1, al2) +
   # Rand line
   geom_line(aes(rand$total_meas, rand$labeled_acc, colour="RAND"), size=1, linetype=2, rand) +
   scale_colour_manual("", 
-                      breaks = c("ACTIVE", "RAND"),
-                      values = c("#F8766D", "#000000")) +
+                      breaks = c("ACTIVE-100", "ACTIVE-25", "RAND"),
+                      values = c("#F8766D", "#00B937", "#000000")) +
   ylab("Inferred Label Accuracy") + 
   xlab("Number of Measurements") +
   ylim(0.68,1) +
