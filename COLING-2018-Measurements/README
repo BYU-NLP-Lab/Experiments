@@ -5,7 +5,7 @@ To prepare your machine(s):
 2) pip install paramiko
 3) set up keyless ssh between your machine and all the hosts in the file 'potatos'. Add more hostnames machines there if you wish to run on more machines.
 4) get data and some utility scripts in place by copying the byunlp-clone.sh script to be a sibling of the Experiments project and running it there. Then in Experiments/COLIN-2018-Measurements/data, do `./setup_data.sh`
-4) Optional: To get and edit source code, follow the instructions in the source code section of the main Readme.md
+5) Optional: To get and edit source code, follow the instructions in the source code section of the main Readme.md
 
 
 ===========================================================
