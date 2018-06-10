@@ -4,7 +4,7 @@ To prepare your machine(s):
 1) get java libraries in place (target/dependency) simply by cloning this repo (Experiments) to the same place on all the machines on which jobs will be run (the 'potatos' file). In the past we'd use maven to do this, but now that maven server has gone away, and we've simply committed a working version of all dependency jars into place. If you need to change the code, you'll have to do a maven install in eclipse, and then copy the resulting jar manually into place in target/dependency
 2) pip install paramiko
 3) set up keyless ssh between your machine and all the hosts in the file 'potatos'. Add more hostnames machines there if you wish to run on more machines.
-4) Optional: To get and edit source code, run ./
+4) Optional: To get and edit source code, follow the instructions in the source code section of the main Readme.md
 
 
 ===========================================================
