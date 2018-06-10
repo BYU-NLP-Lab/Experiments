@@ -1,0 +1,9 @@
+results/
+*.pyc
+all
+*.log
+*.RData
+*.Rhistory
+data/newsgroups
+data/cfgroups
+data/weather
