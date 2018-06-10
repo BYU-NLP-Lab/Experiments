@@ -4,12 +4,14 @@ To prepare your machine(s):
 1) get java libraries in place (target/dependency) simply by cloning this repo (Experiments) to the same place on all the machines on which jobs will be run (the 'potatos' file). In the past we'd use maven to do this, but now that maven server has gone away, and we've simply committed a working version of all dependency jars into place. If you need to change the code, you'll have to do a maven install in eclipse, and then copy the resulting jar manually into place in target/dependency
 2) pip install paramiko
 3) set up keyless ssh between your machine and all the hosts in the file 'potatos'. Add more hostnames machines there if you wish to run on more machines.
+4) setup data by cloning the crowdflower-weather project (https://github.com/BYU-NLP-Lab/crowdflower-weather) as a sibling to Experiments, and doing `cd data; ./setup_data.sh`
 4) Optional: To get and edit source code, follow the instructions in the source code section of the main Readme.md
 
 
 ===========================================================
 --------To generate newsgroups learning curves with simulated annotations and labeled predicates -----------
 ===========================================================
+# edit multiann-newsgroups-simulation.py to make EXPERIMENTS_DIR point to your copy of the Experiments repo
 # link multiann.py to multiann-newsgroups-simulation.py 
   `rm multiann.py; ln -s multiann-newsgroups-simulation.py multiann.py`
 # submit jobs to a job cluster defined in the file 'potatos', one line per host. By default it only points to localhost, but add other machines to farm the jobs out further. For this to work, keyless ssh must be set up on the machines (this includes the default localhost)
@@ -21,6 +23,7 @@ To prepare your machine(s):
 ===========================================================
 ---------To generate the weather learning curves with real annotations and labeled predicates --------------
 ===========================================================
+# edit multiann-weather-preds.py to make EXPERIMENTS_DIR point to your copy of the Experiments repo
 # link multiann.py to multiann-weather-preds.py 
   `rm multiann.py; ln -s multiann-weather-preds.py multiann.py`
 # submit jobs to a job cluster defined in the file 'potatos', one line per host. By default it only points to localhost, but add other machines to farm the jobs out further. For this to work, keyless ssh must be set up on the machines (this includes the default localhost)
