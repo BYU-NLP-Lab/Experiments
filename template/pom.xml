@@ -8,54 +8,5 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<groupId>edu.byu.nlp</groupId>
 
-	<dependencies>
-    <!-- TODO: customize this dependency so that you can transitively download all the dependencies 
-         you need for your experiment to work -->
-		<dependency>
-			<groupId>edu.byu.nlp</groupId>
-			<artifactId>statnlp-somelib</artifactId>
-			<!-- get this dependency version right for paper archives! It should NOT be a snapshot! -->
-			<version>2.3.0</version> 
-		</dependency>
-	</dependencies>
-
-  <!-- In-house repos that should be searched for artifact download -->
-  <repositories>
-    <!-- Releases Repo -->
-    <repository>
-      <id>byunlp-releases</id>
-      <name>BYU NLP Releases</name>
-      <releases>
-        <enabled>true</enabled>
-        <updatePolicy>always</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <url>http://apps.nlp.cs.byu.edu/nexus/content/repositories/byunlp-releases</url>
-      <layout>default</layout>
-    </repository>
-    <!-- Snapshots Repo -->
-    <!-- it's fine to do experiments based on snapshot artifacts for debugging -->
-    <!-- and development purposes, but don't use this for a real paper archive! -->
-    <!-- Create and use a permanent artifact in the releases repo for that -->
-  <!--
-    <repository>
-      <id>byunlp-snapshots</id>
-      <name>BYU NLP Snapshots</name>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>always</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
-      </snapshots>
-      <url>http://apps.nlp.cs.byu.edu/nexus/content/repositories/byunlp-snapshots</url>
-      <layout>default</layout>
-    </repository>
-  -->
-  </repositories>
 
 </project>

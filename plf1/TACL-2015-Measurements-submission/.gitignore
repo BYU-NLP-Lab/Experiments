@@ -1,8 +1,0 @@
-results/
-*.pyc
-*tatoes*
-all
-target/
-*.log
-*.RData
-*.Rhistory
