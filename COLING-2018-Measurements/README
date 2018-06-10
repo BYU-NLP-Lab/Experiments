@@ -14,8 +14,8 @@ To prepare your machine(s):
   `rm multiann.py; ln -s multiann-newsgroups-simulation.py multiann.py`
 # submit jobs to a job cluster defined in the file 'potatos', one line per host. By default it only points to localhost, but add other machines to farm the jobs out further. For this to work, keyless ssh must be set up on the machines (this includes the default localhost)
   `PYTHONPATH=$PYTHONPATH:../../broom-py ./ssh_submit.py -n potatos -o /tmp/multiann-newsgroups-output -r /tmp/multiann-newsgroups-results`
-# gather up the results from the job cluster and write them to a single csv file. This will generate some ignorable errors
-  `./gather.sh potatos /tmp/multiann-newsgroups-results; ./cleanup.sh /tmp/multiann-newsgroups-results; ./:aggregate.sh /tmp/multiann-newsgroups-results > /tmp/multiann-newsgroups.csv`
+# gather up the results from the job cluster into a single folder /tmp/multiann-newsgroups-results (unecessary if just running on localhost) and then do the following to aggregate them to a single csv file. This will generate some ignorable errors
+  `./cleanup.sh /tmp/multiann-newsgroups-results; ./aggregate.sh /tmp/multiann-newsgroups-results > /tmp/multiann-newsgroups.csv`
 
 
 ===========================================================
@@ -25,8 +25,8 @@ To prepare your machine(s):
   `rm multiann.py; ln -s multiann-weather-preds.py multiann.py`
 # submit jobs to a job cluster defined in the file 'potatos', one line per host. By default it only points to localhost, but add other machines to farm the jobs out further. For this to work, keyless ssh must be set up on the machines (this includes the default localhost)
   `PYTHONPATH=$PYTHONPATH:../../broom-py ./ssh_submit.py  -n potatos -o /tmp/multiann-weather-output -r /tmp/multiann-weather-results`
-# gather up the results from the job cluster and write them to a single csv file. This will generate some ignorable errors
-  `./gather.sh potatos /tmp/multiann-weather-results; ./cleanup.sh /tmp/multiann-weather-results; ./aggregate.sh /tmp/multiann-weather-results > /tmp/multiann-weather.csv`
+# gather up the results from the job cluster into a single folder /tmp/multiann-weather-results (unecessary if just running on localhost) and then do the following to aggregate them to a single csv file. This will generate some ignorable errors
+  `./cleanup.sh /tmp/multiann-weather-results; ./aggregate.sh /tmp/multiann-weather-results > /tmp/multiann-weather.csv`
 
 
 ===========================================================
@@ -49,7 +49,7 @@ java -Xmx4g -cp config:"target/dependency/*" edu.byu.nlp.al.app.CrowdsourcingAct
 --algorithm-seed=1 \
 --results-file=/tmp/multiann-weather-AL.csv \
 --annotations-file=/tmp/multiann-weather-AL-anns \
---tabular-file=/tmp/multiann-weather-AL-tabular \
+--tabular-file=/tmp/multiann-weather-AL-tabular
 
 Then look in /tmp/multiann-weather-AL.csv for results to be printed out. This is not parallelizable and just runs on one machine. Takes a very long time. 
 Params of interest include 
